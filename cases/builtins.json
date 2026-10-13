@@ -1,0 +1,320 @@
+[
+  {
+    "id": "smoke:models",
+    "title": "List models and retrieve a configured model",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:models.list", "endpoint:models.retrieve"],
+    "steps": [
+      {
+        "id": "models",
+        "method": "models.list",
+        "args": [],
+        "optionsIndex": 0,
+        "assertions": [
+          { "path": "data", "op": "type", "value": "array" },
+          { "path": "data", "op": "nonEmpty" },
+          { "path": "data.0.id", "op": "nonEmpty" }
+        ]
+      },
+      {
+        "id": "model",
+        "method": "models.retrieve",
+        "args": [{ "$env": "OPENAI_TEST_TEXT_MODEL" }],
+        "optionsIndex": 1,
+        "assertions": [
+          { "path": "object", "op": "equals", "value": "model" },
+          { "path": "id", "op": "nonEmpty" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smoke:responses",
+    "title": "Stored response lifecycle with guaranteed deletion",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:responses.create", "endpoint:responses.retrieve", "endpoint:responses.inputItems.list", "endpoint:responses.delete"],
+    "steps": [
+      {
+        "id": "created",
+        "method": "responses.create",
+        "optionsIndex": 1,
+        "args": [{
+          "model": { "$env": "OPENAI_TEST_TEXT_MODEL" },
+          "input": "Reply with the single word compatibility.",
+          "max_output_tokens": 32,
+          "store": true
+        }],
+        "assertions": [
+          { "path": "id", "op": "nonEmpty" },
+          { "path": "status", "op": "equals", "value": "completed" },
+          { "path": "output_text", "op": "nonEmpty" }
+        ]
+      },
+      {
+        "id": "retrieved",
+        "method": "responses.retrieve",
+        "optionsIndex": 2,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [
+          { "path": "object", "op": "equals", "value": "response" },
+          { "path": "output_text", "op": "nonEmpty" }
+        ]
+      },
+      {
+        "id": "inputs",
+        "method": "responses.inputItems.list",
+        "optionsIndex": 2,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "data", "op": "nonEmpty" }]
+      }
+    ],
+    "cleanup": [
+      {
+        "id": "deleted",
+        "when": "created.id",
+        "method": "responses.delete",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "", "op": "type", "value": "null" }]
+      }
+    ]
+  },
+  {
+    "id": "smoke:responses-stream",
+    "title": "Response streaming emits text deltas and completion",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:responses.create"],
+    "steps": [
+      {
+        "id": "stream",
+        "method": "responses.create",
+        "optionsIndex": 1,
+        "capture": "stream",
+        "args": [{
+          "model": { "$env": "OPENAI_TEST_TEXT_MODEL" },
+          "input": "Reply with the single word compatibility.",
+          "max_output_tokens": 32,
+          "stream": true,
+          "store": false
+        }],
+        "assertions": [
+          { "path": "text", "op": "nonEmpty" },
+          { "path": "types", "op": "includes", "value": "response.completed" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smoke:chat-completions",
+    "title": "Stored chat completion lifecycle",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": [
+      "endpoint:chat.completions.create",
+      "endpoint:chat.completions.retrieve",
+      "endpoint:chat.completions.update",
+      "endpoint:chat.completions.list",
+      "endpoint:chat.completions.messages.list",
+      "endpoint:chat.completions.delete"
+    ],
+    "steps": [
+      {
+        "id": "created",
+        "method": "chat.completions.create",
+        "optionsIndex": 1,
+        "args": [{
+          "model": { "$env": "OPENAI_TEST_TEXT_MODEL" },
+          "messages": [{ "role": "user", "content": "Reply with the single word compatibility." }],
+          "max_completion_tokens": 32,
+          "store": true
+        }],
+        "assertions": [
+          { "path": "id", "op": "nonEmpty" },
+          { "path": "choices.0.message.content", "op": "nonEmpty" }
+        ]
+      },
+      {
+        "id": "retrieved",
+        "method": "chat.completions.retrieve",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "object", "op": "equals", "value": "chat.completion" }]
+      },
+      {
+        "id": "updated",
+        "method": "chat.completions.update",
+        "optionsIndex": 2,
+        "args": [{ "$ref": "created.id" }, { "metadata": { "compatibility_suite": "true" } }],
+        "assertions": [{ "path": "metadata.compatibility_suite", "op": "equals", "value": "true" }]
+      },
+      {
+        "id": "listed",
+        "method": "chat.completions.list",
+        "optionsIndex": 1,
+        "args": [{ "limit": 1 }],
+        "assertions": [{ "path": "data", "op": "type", "value": "array" }]
+      },
+      {
+        "id": "messages",
+        "method": "chat.completions.messages.list",
+        "optionsIndex": 2,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "data", "op": "nonEmpty" }]
+      }
+    ],
+    "cleanup": [
+      {
+        "id": "deleted",
+        "when": "created.id",
+        "method": "chat.completions.delete",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "deleted", "op": "equals", "value": true }]
+      }
+    ]
+  },
+  {
+    "id": "smoke:embeddings",
+    "title": "Float embedding is nonempty and reports token usage",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:embeddings.create"],
+    "steps": [
+      {
+        "id": "embedding",
+        "method": "embeddings.create",
+        "optionsIndex": 1,
+        "args": [{
+          "model": { "$env": "OPENAI_TEST_EMBEDDING_MODEL" },
+          "input": "SDK compatibility test",
+          "encoding_format": "float"
+        }],
+        "assertions": [
+          { "path": "data.0.embedding", "op": "nonEmpty" },
+          { "path": "data.0.embedding.0", "op": "type", "value": "number" },
+          { "path": "usage.total_tokens", "op": "greaterThan", "value": 0 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smoke:moderations",
+    "title": "Harmless moderation input returns category scores",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:moderations.create"],
+    "steps": [
+      {
+        "id": "moderation",
+        "method": "moderations.create",
+        "optionsIndex": 1,
+        "args": [{ "model": "omni-moderation-latest", "input": "Have a lovely day." }],
+        "assertions": [
+          { "path": "results.0.flagged", "op": "equals", "value": false },
+          { "path": "results.0.category_scores", "op": "type", "value": "object" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "smoke:files",
+    "title": "Upload, retrieve, list, download, and delete a disposable file",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:files.create", "endpoint:files.retrieve", "endpoint:files.list", "endpoint:files.content", "endpoint:files.delete"],
+    "steps": [
+      {
+        "id": "uploaded",
+        "method": "files.create",
+        "optionsIndex": 1,
+        "args": [{ "file": { "$file": "sample.txt", "type": "text/plain" }, "purpose": "assistants" }],
+        "assertions": [
+          { "path": "id", "op": "nonEmpty" },
+          { "path": "bytes", "op": "greaterThan", "value": 0 }
+        ]
+      },
+      {
+        "id": "retrieved",
+        "method": "files.retrieve",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "uploaded.id" }],
+        "assertions": [{ "path": "object", "op": "equals", "value": "file" }]
+      },
+      {
+        "id": "listed",
+        "method": "files.list",
+        "optionsIndex": 1,
+        "args": [{ "limit": 1 }],
+        "assertions": [{ "path": "data", "op": "type", "value": "array" }]
+      },
+      {
+        "id": "content",
+        "method": "files.content",
+        "optionsIndex": 1,
+        "capture": "text",
+        "args": [{ "$ref": "uploaded.id" }],
+        "assertions": [{ "path": "", "op": "includes", "value": "SDK compatibility fixture" }]
+      }
+    ],
+    "cleanup": [
+      {
+        "id": "deleted",
+        "when": "uploaded.id",
+        "method": "files.delete",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "uploaded.id" }],
+        "assertions": [{ "path": "deleted", "op": "equals", "value": true }]
+      }
+    ]
+  },
+  {
+    "id": "smoke:vector-stores",
+    "title": "Empty disposable vector store lifecycle",
+    "since": "7.3.0",
+    "ready": true,
+    "covers": ["endpoint:vectorStores.create", "endpoint:vectorStores.retrieve", "endpoint:vectorStores.update", "endpoint:vectorStores.list", "endpoint:vectorStores.delete"],
+    "steps": [
+      {
+        "id": "created",
+        "method": "vectorStores.create",
+        "optionsIndex": 1,
+        "args": [{ "name": "openai-sdk-compat", "expires_after": { "anchor": "last_active_at", "days": 1 } }],
+        "assertions": [{ "path": "object", "op": "equals", "value": "vector_store" }, { "path": "id", "op": "nonEmpty" }]
+      },
+      {
+        "id": "retrieved",
+        "method": "vectorStores.retrieve",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "object", "op": "equals", "value": "vector_store" }]
+      },
+      {
+        "id": "updated",
+        "method": "vectorStores.update",
+        "optionsIndex": 2,
+        "args": [{ "$ref": "created.id" }, { "metadata": { "compatibility_suite": "true" } }],
+        "assertions": [{ "path": "metadata.compatibility_suite", "op": "equals", "value": "true" }]
+      },
+      {
+        "id": "listed",
+        "method": "vectorStores.list",
+        "optionsIndex": 1,
+        "args": [{ "limit": 1 }],
+        "assertions": [{ "path": "data", "op": "type", "value": "array" }]
+      }
+    ],
+    "cleanup": [
+      {
+        "id": "deleted",
+        "when": "created.id",
+        "method": "vectorStores.delete",
+        "optionsIndex": 1,
+        "args": [{ "$ref": "created.id" }],
+        "assertions": [{ "path": "deleted", "op": "equals", "value": true }]
+      }
+    ]
+  }
+]

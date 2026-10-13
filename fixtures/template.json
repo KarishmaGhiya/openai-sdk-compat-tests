@@ -1,0 +1,1522 @@
+{
+  "endpoint:admin.organization.adminAPIKeys.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.adminAPIKeys.create({ ...params }) -> AdminAPIKeyCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.adminAPIKeys.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.adminAPIKeys.delete(keyID) -> AdminAPIKeyDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.adminAPIKeys.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.adminAPIKeys.list({ ...params }) -> AdminAPIKeysPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.adminAPIKeys.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.adminAPIKeys.retrieve(keyID) -> AdminAPIKey; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.auditLogs.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.auditLogs.list({ ...params }) -> AuditLogListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.activate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.activate({ ...params }) -> CertificateActivateResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.create({ ...params }) -> Certificate; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.deactivate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.deactivate({ ...params }) -> CertificateDeactivateResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.delete(certificateID) -> CertificateDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.list({ ...params }) -> CertificateListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.retrieve(certificateID, { ...params }) -> Certificate; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.certificates.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.certificates.update(certificateID, { ...params }) -> Certificate; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.dataRetention.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.dataRetention.retrieve() -> OrganizationDataRetention; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.dataRetention.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.dataRetention.update({ ...params }) -> OrganizationDataRetention; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.create({ ...params }) -> Group; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.delete(groupID) -> GroupDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.list({ ...params }) -> GroupsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.retrieve(groupID) -> Group; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.roles.create(groupID, { ...params }) -> RoleCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.roles.delete(roleID, { ...params }) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.roles.list(groupID, { ...params }) -> RoleListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.roles.retrieve(roleID, { ...params }) -> RoleRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.update(groupID, { ...params }) -> GroupUpdateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.users.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.users.create(groupID, { ...params }) -> UserCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.users.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.users.delete(userID, { ...params }) -> UserDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.users.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.users.list(groupID, { ...params }) -> OrganizationGroupUsersPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.groups.users.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.groups.users.retrieve(userID, { ...params }) -> UserRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.invites.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.invites.create({ ...params }) -> Invite; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.invites.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.invites.delete(inviteID) -> InviteDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.invites.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.invites.list({ ...params }) -> InvitesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.invites.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.invites.retrieve(inviteID) -> Invite; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.apiKeys.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.apiKeys.delete(apiKeyID, { ...params }) -> APIKeyDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.apiKeys.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.apiKeys.list(projectID, { ...params }) -> ProjectAPIKeysPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.apiKeys.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.apiKeys.retrieve(apiKeyID, { ...params }) -> ProjectAPIKey; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.archive": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.archive(projectID) -> Project; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.certificates.activate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.certificates.activate(projectID, { ...params }) -> CertificateActivateResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.certificates.deactivate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.certificates.deactivate(projectID, { ...params }) -> CertificateDeactivateResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.certificates.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.certificates.list(projectID, { ...params }) -> CertificateListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.create({ ...params }) -> Project; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.dataRetention.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.dataRetention.retrieve(projectID) -> ProjectDataRetention; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.dataRetention.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.dataRetention.update(projectID, { ...params }) -> ProjectDataRetention; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.create(projectID, { ...params }) -> ProjectGroup; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.delete(groupID, { ...params }) -> GroupDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.list(projectID, { ...params }) -> ProjectGroupsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.retrieve(groupID, { ...params }) -> ProjectGroup; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.roles.create(groupID, { ...params }) -> RoleCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.roles.delete(roleID, { ...params }) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.roles.list(groupID, { ...params }) -> RoleListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.groups.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.groups.roles.retrieve(roleID, { ...params }) -> RoleRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.hostedToolPermissions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.hostedToolPermissions.retrieve(projectID) -> ProjectHostedToolPermissions; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.hostedToolPermissions.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.hostedToolPermissions.update(projectID, { ...params }) -> ProjectHostedToolPermissions; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.list({ ...params }) -> ProjectsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.modelPermissions.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.modelPermissions.delete(projectID) -> ProjectModelPermissionsDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.modelPermissions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.modelPermissions.retrieve(projectID) -> ProjectModelPermissions; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.modelPermissions.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.modelPermissions.update(projectID, { ...params }) -> ProjectModelPermissions; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.rateLimits.listRateLimits": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.rateLimits.listRateLimits(projectID, { ...params }) -> ProjectRateLimitsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.rateLimits.updateRateLimit": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.rateLimits.updateRateLimit(rateLimitID, { ...params }) -> ProjectRateLimit; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.retrieve(projectID) -> Project; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.roles.create(projectID, { ...params }) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.roles.delete(roleID, { ...params }) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.roles.list(projectID, { ...params }) -> RolesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.roles.retrieve(roleID, { ...params }) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.roles.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.roles.update(roleID, { ...params }) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.apiKeys.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.apiKeys.create(serviceAccountID, { ...params }) -> APIKeyCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.create(projectID, { ...params }) -> ServiceAccountCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.delete(serviceAccountID, { ...params }) -> ServiceAccountDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.list(projectID, { ...params }) -> ProjectServiceAccountsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.retrieve(serviceAccountID, { ...params }) -> ProjectServiceAccount; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceAccounts.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceAccounts.update(serviceAccountID, { ...params }) -> ProjectServiceAccount; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendAlerts.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendAlerts.create(projectID, { ...params }) -> ProjectSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendAlerts.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendAlerts.delete(alertID, { ...params }) -> ProjectSpendAlertDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendAlerts.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendAlerts.list(projectID, { ...params }) -> ProjectSpendAlertsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendAlerts.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendAlerts.retrieve(alertID, { ...params }) -> ProjectSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendAlerts.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendAlerts.update(alertID, { ...params }) -> ProjectSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendLimit.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendLimit.delete(projectID) -> ProjectSpendLimitDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendLimit.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendLimit.retrieve(projectID) -> ProjectSpendLimit; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.spendLimit.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.spendLimit.update(projectID, { ...params }) -> ProjectSpendLimit; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.update(projectID, { ...params }) -> Project; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.create(projectID, { ...params }) -> ProjectUser; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.delete(userID, { ...params }) -> UserDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.list(projectID, { ...params }) -> ProjectUsersPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.retrieve(userID, { ...params }) -> ProjectUser; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.roles.create(userID, { ...params }) -> RoleCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.roles.delete(roleID, { ...params }) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.roles.list(userID, { ...params }) -> RoleListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.roles.retrieve(roleID, { ...params }) -> RoleRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.users.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.users.update(userID, { ...params }) -> ProjectUser; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.roles.create({ ...params }) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.roles.delete(roleID) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.roles.list({ ...params }) -> RolesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.roles.retrieve(roleID) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.roles.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.roles.update(roleID, { ...params }) -> Role; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendAlerts.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendAlerts.create({ ...params }) -> OrganizationSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendAlerts.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendAlerts.delete(alertID) -> OrganizationSpendAlertDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendAlerts.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendAlerts.list({ ...params }) -> OrganizationSpendAlertsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendAlerts.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendAlerts.retrieve(alertID) -> OrganizationSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendAlerts.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendAlerts.update(alertID, { ...params }) -> OrganizationSpendAlert; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendLimit.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendLimit.delete() -> OrganizationSpendLimitDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendLimit.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendLimit.retrieve() -> OrganizationSpendLimit; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.spendLimit.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.spendLimit.update({ ...params }) -> OrganizationSpendLimit; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.audioSpeeches": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.audioSpeeches({ ...params }) -> UsageAudioSpeechesResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.audioTranscriptions": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.audioTranscriptions({ ...params }) -> UsageAudioTranscriptionsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.codeInterpreterSessions": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.codeInterpreterSessions({ ...params }) -> UsageCodeInterpreterSessionsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.completions": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.completions({ ...params }) -> UsageCompletionsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.costs": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.costs({ ...params }) -> UsageCostsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.embeddings": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.embeddings({ ...params }) -> UsageEmbeddingsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.fileSearchCalls": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.fileSearchCalls({ ...params }) -> UsageFileSearchCallsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.images": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.images({ ...params }) -> UsageImagesResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.moderations": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.moderations({ ...params }) -> UsageModerationsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.vectorStores": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.vectorStores({ ...params }) -> UsageVectorStoresResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.webSearchCalls": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.webSearchCalls({ ...params }) -> UsageWebSearchCallsResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.delete(userID) -> UserDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.list({ ...params }) -> OrganizationUsersPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.retrieve(userID) -> OrganizationUser; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.roles.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.roles.create(userID, { ...params }) -> RoleCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.roles.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.roles.delete(roleID, { ...params }) -> RoleDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.roles.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.roles.list(userID, { ...params }) -> RoleListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.roles.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.roles.retrieve(roleID, { ...params }) -> RoleRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.users.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.users.update(userID, { ...params }) -> OrganizationUser; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.speech.create": {
+    "args": null,
+    "note": "Supply valid arguments for audio.speech.create({ ...params }) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.transcriptions.create": {
+    "args": null,
+    "note": "Supply valid arguments for audio.transcriptions.create({ ...params }) -> TranscriptionCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.translations.create": {
+    "args": null,
+    "note": "Supply valid arguments for audio.translations.create({ ...params }) -> TranslationCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:batches.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for batches.cancel(batchID) -> Batch; use only dedicated disposable test resources."
+  },
+  "endpoint:batches.create": {
+    "args": null,
+    "note": "Supply valid arguments for batches.create({ ...params }) -> Batch; use only dedicated disposable test resources."
+  },
+  "endpoint:batches.list": {
+    "args": null,
+    "note": "Supply valid arguments for batches.list({ ...params }) -> BatchesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:batches.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for batches.retrieve(batchID) -> Batch; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.assistants.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.assistants.create({ ...params }) -> Assistant; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.assistants.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.assistants.delete(assistantID) -> AssistantDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.assistants.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.assistants.list({ ...params }) -> AssistantsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.assistants.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.assistants.retrieve(assistantID) -> Assistant; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.assistants.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.assistants.update(assistantID, { ...params }) -> Assistant; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.sessions.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.sessions.cancel(sessionID) -> ChatSession; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.sessions.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.sessions.create({ ...params }) -> ChatSession; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.threads.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.threads.delete(threadID) -> ThreadDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.threads.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.threads.list({ ...params }) -> ChatKitThreadsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.threads.listItems": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.threads.listItems(threadID, { ...params }) -> ChatKitThreadItemListDataPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.chatkit.threads.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.chatkit.threads.retrieve(threadID) -> ChatKitThread; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.cancel(responseID, { ...params }) -> BetaResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.compact": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.compact({ ...params }) -> BetaCompactedResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.create({ ...params }) -> BetaResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.delete(responseID, { ...params }) -> void; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.inputItems.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.inputItems.list(responseID, { ...params }) -> BetaResponseItemsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.inputTokens.count": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.inputTokens.count({ ...params }) -> InputTokenCountResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.responses.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.responses.retrieve(responseID, { ...params }) -> BetaResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.create({ ...params }) -> Thread; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.createAndRun": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.createAndRun({ ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.delete(threadID) -> ThreadDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.messages.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.messages.create(threadID, { ...params }) -> Message; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.messages.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.messages.delete(messageID, { ...params }) -> MessageDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.messages.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.messages.list(threadID, { ...params }) -> MessagesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.messages.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.messages.retrieve(messageID, { ...params }) -> Message; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.messages.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.messages.update(messageID, { ...params }) -> Message; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.retrieve(threadID) -> Thread; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.cancel(runID, { ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.create(threadID, { ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.list(threadID, { ...params }) -> RunsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.retrieve(runID, { ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.steps.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.steps.list(runID, { ...params }) -> RunStepsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.steps.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.steps.retrieve(stepID, { ...params }) -> RunStep; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.submitToolOutputs": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.submitToolOutputs(runID, { ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.runs.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.runs.update(runID, { ...params }) -> Run; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.threads.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.threads.update(threadID, { ...params }) -> Thread; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.create": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.create({ ...params }) -> ChatCompletion; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.delete": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.delete(completionID) -> ChatCompletionDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.list": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.list({ ...params }) -> ChatCompletionsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.messages.list": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.messages.list(completionID, { ...params }) -> ChatCompletionStoreMessagesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.retrieve(completionID) -> ChatCompletion; use only dedicated disposable test resources."
+  },
+  "endpoint:chat.completions.update": {
+    "args": null,
+    "note": "Supply valid arguments for chat.completions.update(completionID, { ...params }) -> ChatCompletion; use only dedicated disposable test resources."
+  },
+  "endpoint:completions.create": {
+    "args": null,
+    "note": "Supply valid arguments for completions.create({ ...params }) -> Completion; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.create": {
+    "args": null,
+    "note": "Supply valid arguments for containers.create({ ...params }) -> ContainerCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.delete": {
+    "args": null,
+    "note": "Supply valid arguments for containers.delete(containerID) -> void; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.files.content.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for containers.files.content.retrieve(fileID, { ...params }) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.files.create": {
+    "args": null,
+    "note": "Supply valid arguments for containers.files.create(containerID, { ...params }) -> FileCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.files.delete": {
+    "args": null,
+    "note": "Supply valid arguments for containers.files.delete(fileID, { ...params }) -> void; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.files.list": {
+    "args": null,
+    "note": "Supply valid arguments for containers.files.list(containerID, { ...params }) -> FileListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.files.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for containers.files.retrieve(fileID, { ...params }) -> FileRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.list": {
+    "args": null,
+    "note": "Supply valid arguments for containers.list({ ...params }) -> ContainerListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:containers.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for containers.retrieve(containerID) -> ContainerRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:contentProvenanceChecks.create": {
+    "args": null,
+    "note": "Supply valid arguments for contentProvenanceChecks.create({ ...params }) -> ContentProvenanceCheck; use only dedicated disposable test resources."
+  },
+  "endpoint:embeddings.create": {
+    "args": null,
+    "note": "Supply valid arguments for embeddings.create({ ...params }) -> CreateEmbeddingResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.create": {
+    "args": null,
+    "note": "Supply valid arguments for evals.create({ ...params }) -> EvalCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.delete": {
+    "args": null,
+    "note": "Supply valid arguments for evals.delete(evalID) -> EvalDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.list": {
+    "args": null,
+    "note": "Supply valid arguments for evals.list({ ...params }) -> EvalListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for evals.retrieve(evalID) -> EvalRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.cancel(runID, { ...params }) -> RunCancelResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.create": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.create(evalID, { ...params }) -> RunCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.delete": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.delete(runID, { ...params }) -> RunDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.list": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.list(evalID, { ...params }) -> RunListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.outputItems.list": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.outputItems.list(runID, { ...params }) -> OutputItemListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.outputItems.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.outputItems.retrieve(outputItemID, { ...params }) -> OutputItemRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.runs.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for evals.runs.retrieve(runID, { ...params }) -> RunRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:evals.update": {
+    "args": null,
+    "note": "Supply valid arguments for evals.update(evalID, { ...params }) -> EvalUpdateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:files.content": {
+    "args": null,
+    "note": "Supply valid arguments for files.content(fileID) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:files.create": {
+    "args": null,
+    "note": "Supply valid arguments for files.create({ ...params }) -> FileObject; use only dedicated disposable test resources."
+  },
+  "endpoint:files.delete": {
+    "args": null,
+    "note": "Supply valid arguments for files.delete(fileID) -> FileDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:files.list": {
+    "args": null,
+    "note": "Supply valid arguments for files.list({ ...params }) -> FileObjectsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:files.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for files.retrieve(fileID) -> FileObject; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.alpha.graders.run": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.alpha.graders.run({ ...params }) -> GraderRunResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.alpha.graders.validate": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.alpha.graders.validate({ ...params }) -> GraderValidateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.checkpoints.permissions.create": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.checkpoints.permissions.create(fineTunedModelCheckpoint, { ...params }) -> PermissionCreateResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.checkpoints.permissions.delete": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.checkpoints.permissions.delete(permissionID, { ...params }) -> PermissionDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.checkpoints.permissions.list": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.checkpoints.permissions.list(fineTunedModelCheckpoint, { ...params }) -> PermissionListResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.checkpoints.permissions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.checkpoints.permissions.retrieve(fineTunedModelCheckpoint, { ...params }) -> PermissionRetrieveResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.cancel(fineTuningJobID) -> FineTuningJob; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.checkpoints.list": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.checkpoints.list(fineTuningJobID, { ...params }) -> FineTuningJobCheckpointsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.create": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.create({ ...params }) -> FineTuningJob; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.list": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.list({ ...params }) -> FineTuningJobsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.listEvents": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.listEvents(fineTuningJobID, { ...params }) -> FineTuningJobEventsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.pause": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.pause(fineTuningJobID) -> FineTuningJob; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.resume": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.resume(fineTuningJobID) -> FineTuningJob; use only dedicated disposable test resources."
+  },
+  "endpoint:fineTuning.jobs.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for fineTuning.jobs.retrieve(fineTuningJobID) -> FineTuningJob; use only dedicated disposable test resources."
+  },
+  "endpoint:images.createVariation": {
+    "args": null,
+    "note": "Supply valid arguments for images.createVariation({ ...params }) -> ImagesResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:images.edit": {
+    "args": null,
+    "note": "Supply valid arguments for images.edit({ ...params }) -> ImagesResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:images.generate": {
+    "args": null,
+    "note": "Supply valid arguments for images.generate({ ...params }) -> ImagesResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:models.delete": {
+    "args": null,
+    "note": "Supply valid arguments for models.delete(model) -> ModelDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:models.list": {
+    "args": null,
+    "note": "Supply valid arguments for models.list() -> ModelsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:models.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for models.retrieve(model) -> Model; use only dedicated disposable test resources."
+  },
+  "endpoint:moderations.create": {
+    "args": null,
+    "note": "Supply valid arguments for moderations.create({ ...params }) -> ModerationCreateResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.content.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for skills.content.retrieve(skillID) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.create": {
+    "args": null,
+    "note": "Supply valid arguments for skills.create({ ...params }) -> Skill; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.delete": {
+    "args": null,
+    "note": "Supply valid arguments for skills.delete(skillID) -> DeletedSkill; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.list": {
+    "args": null,
+    "note": "Supply valid arguments for skills.list({ ...params }) -> SkillsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for skills.retrieve(skillID) -> Skill; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.update": {
+    "args": null,
+    "note": "Supply valid arguments for skills.update(skillID, { ...params }) -> Skill; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.versions.content.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for skills.versions.content.retrieve(version, { ...params }) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.versions.create": {
+    "args": null,
+    "note": "Supply valid arguments for skills.versions.create(skillID, { ...params }) -> SkillVersion; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.versions.delete": {
+    "args": null,
+    "note": "Supply valid arguments for skills.versions.delete(version, { ...params }) -> DeletedSkillVersion; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.versions.list": {
+    "args": null,
+    "note": "Supply valid arguments for skills.versions.list(skillID, { ...params }) -> SkillVersionsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:skills.versions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for skills.versions.retrieve(version, { ...params }) -> SkillVersion; use only dedicated disposable test resources."
+  },
+  "endpoint:uploads.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for uploads.cancel(uploadID) -> Upload; use only dedicated disposable test resources."
+  },
+  "endpoint:uploads.complete": {
+    "args": null,
+    "note": "Supply valid arguments for uploads.complete(uploadID, { ...params }) -> Upload; use only dedicated disposable test resources."
+  },
+  "endpoint:uploads.create": {
+    "args": null,
+    "note": "Supply valid arguments for uploads.create({ ...params }) -> Upload; use only dedicated disposable test resources."
+  },
+  "endpoint:uploads.parts.create": {
+    "args": null,
+    "note": "Supply valid arguments for uploads.parts.create(uploadID, { ...params }) -> UploadPart; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.create": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.create({ ...params }) -> VectorStore; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.delete": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.delete(vectorStoreID) -> VectorStoreDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.fileBatches.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.fileBatches.cancel(batchID, { ...params }) -> VectorStoreFileBatch; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.fileBatches.create": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.fileBatches.create(vectorStoreID, { ...params }) -> VectorStoreFileBatch; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.fileBatches.listFiles": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.fileBatches.listFiles(batchID, { ...params }) -> VectorStoreFilesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.fileBatches.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.fileBatches.retrieve(batchID, { ...params }) -> VectorStoreFileBatch; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.content": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.content(fileID, { ...params }) -> FileContentResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.create": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.create(vectorStoreID, { ...params }) -> VectorStoreFile; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.delete": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.delete(fileID, { ...params }) -> VectorStoreFileDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.list": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.list(vectorStoreID, { ...params }) -> VectorStoreFilesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.retrieve(fileID, { ...params }) -> VectorStoreFile; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.files.update": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.files.update(fileID, { ...params }) -> VectorStoreFile; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.list": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.list({ ...params }) -> VectorStoresPage; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.retrieve(vectorStoreID) -> VectorStore; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.search": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.search(vectorStoreID, { ...params }) -> VectorStoreSearchResponsesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:vectorStores.update": {
+    "args": null,
+    "note": "Supply valid arguments for vectorStores.update(vectorStoreID, { ...params }) -> VectorStore; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.create": {
+    "args": null,
+    "note": "Supply valid arguments for videos.create({ ...params }) -> Video; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.createCharacter": {
+    "args": null,
+    "note": "Supply valid arguments for videos.createCharacter({ ...params }) -> VideoCreateCharacterResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.delete": {
+    "args": null,
+    "note": "Supply valid arguments for videos.delete(videoID) -> VideoDeleteResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.downloadContent": {
+    "args": null,
+    "note": "Supply valid arguments for videos.downloadContent(videoID, { ...params }) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.edit": {
+    "args": null,
+    "note": "Supply valid arguments for videos.edit({ ...params }) -> Video; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.extend": {
+    "args": null,
+    "note": "Supply valid arguments for videos.extend({ ...params }) -> Video; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.getCharacter": {
+    "args": null,
+    "note": "Supply valid arguments for videos.getCharacter(characterID) -> VideoGetCharacterResponse; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.list": {
+    "args": null,
+    "note": "Supply valid arguments for videos.list({ ...params }) -> VideosPage; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.remix": {
+    "args": null,
+    "note": "Supply valid arguments for videos.remix(videoID, { ...params }) -> Video; use only dedicated disposable test resources."
+  },
+  "endpoint:videos.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for videos.retrieve(videoID) -> Video; use only dedicated disposable test resources."
+  },
+  "features:7.4.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.5.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.6.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.7.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.8.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.9.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:safety.alerts.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for safety.alerts.retrieve(id) -> SafetyAlert; use only dedicated disposable test resources."
+  },
+  "features:7.10.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.11.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.12.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.12.1": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.13.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.14.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.agents.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.create({ ...params }) -> Agent; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.delete(agentID) -> AgentDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.files.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.files.create(environmentID, { ...params }) -> EnvironmentFile; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.files.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.files.list(environmentID, { ...params }) -> EnvironmentFilesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.retrieve(environmentID) -> EnvironmentInfo; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.templates.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.templates.create({ ...params }) -> EnvironmentTemplate; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.templates.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.templates.delete(environmentTemplateID) -> EnvironmentTemplateDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.templates.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.templates.list({ ...params }) -> EnvironmentTemplatesPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.templates.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.templates.retrieve(environmentTemplateID) -> EnvironmentTemplate; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.templates.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.templates.update(environmentTemplateID, { ...params }) -> EnvironmentTemplate; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.list({ ...params }) -> AgentsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.retrieve(agentID) -> Agent; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.artifacts.content": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.artifacts.content(artifactID, { ...params }) -> Response; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.artifacts.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.artifacts.delete(artifactID, { ...params }) -> SessionArtifactDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.artifacts.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.artifacts.list(sessionID, { ...params }) -> SessionArtifactsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.artifacts.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.artifacts.retrieve(artifactID, { ...params }) -> SessionArtifact; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.create({ ...params }) -> AgentSession; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.delete(sessionID) -> AgentSessionDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.events.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.events.create(sessionID, { ...params }) -> void; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.events.stream": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.events.stream(sessionID) -> AgentSessionEvent; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.items.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.items.list(sessionID, { ...params }) -> AgentSessionItemsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.list({ ...params }) -> AgentSessionsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.retrieve(sessionID) -> AgentSession; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.items.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.items.list(subagentID, { ...params }) -> AgentSessionItemsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.list(sessionID, { ...params }) -> SubagentsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.retrieve(subagentID, { ...params }) -> Subagent; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.turns.items.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.turns.items.list(turnID, { ...params }) -> AgentSessionItemsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.turns.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.turns.list(subagentID, { ...params }) -> TurnsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.subagents.turns.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.subagents.turns.retrieve(turnID, { ...params }) -> Turn; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.turns.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.turns.list(sessionID, { ...params }) -> TurnsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.turns.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.turns.retrieve(turnID, { ...params }) -> Turn; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.sessions.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.update(sessionID, { ...params }) -> AgentSession; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.update(agentID, { ...params }) -> Agent; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.create({ ...params }) -> Vault; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.credentials.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.credentials.create(vaultID, { ...params }) -> Credential; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.credentials.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.credentials.delete(credentialID, { ...params }) -> CredentialDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.credentials.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.credentials.list(vaultID, { ...params }) -> CredentialsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.credentials.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.credentials.retrieve(credentialID, { ...params }) -> Credential; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.credentials.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.credentials.update(credentialID, { ...params }) -> Credential; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.delete(vaultID) -> VaultDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.list({ ...params }) -> VaultsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.retrieve(vaultID) -> Vault; use only dedicated disposable test resources."
+  },
+  "features:7.15.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.16.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.17.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.18.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.19.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:admin.organization.externalStorage.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalStorage.create({ ...params }) -> ExternalStorageConfiguration; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalStorage.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalStorage.delete(externalStorageID) -> ExternalStorageDeleted; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalStorage.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalStorage.list({ ...params }) -> ExternalStorageConfigurationsPage; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalStorage.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalStorage.retrieve(externalStorageID) -> ExternalStorageConfiguration; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalStorage.validate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalStorage.validate(externalStorageID) -> ExternalStorageConfiguration; use only dedicated disposable test resources."
+  },
+  "endpoint:safety.cases.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for safety.cases.retrieve(id) -> SafetyCase; use only dedicated disposable test resources."
+  },
+  "features:7.20.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.21.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.22.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.23.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.24.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.25.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.agents.sessions.traces.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.traces.list(sessionID, { ...params }) -> SessionTracesPage; use only dedicated disposable test resources."
+  },
+  "features:7.26.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.27.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:audio.voices.create": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voices.create({ ...params }) -> Voice; use only dedicated disposable test resources."
+  },
+  "features:7.28.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.agents.sessions.turns.items.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.sessions.turns.items.list(turnID, { ...params }) -> AgentSessionItemsConversationCursorPage; use only dedicated disposable test resources."
+  },
+  "features:7.29.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:decisions.create": {
+    "args": null,
+    "note": "Supply valid arguments for decisions.create({ ...params }) -> Decision; use only dedicated disposable test resources."
+  },
+  "features:7.30.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.realtime.sessions.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.realtime.sessions.create(body: SessionCreateParams) -> APIPromise<SessionCreateResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.realtime.transcriptionSessions.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.realtime.transcriptionSessions.create(body: TranscriptionSessionCreateParams) -> APIPromise<TranscriptionSession>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.create": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.create(body: ConversationCreateParams | null | undefined = {}) -> APIPromise<Conversation>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.delete": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.delete(conversationID: string) -> APIPromise<ConversationDeletedResource>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.items.create": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.items.create(conversationID: string, params: ItemCreateParams) -> APIPromise<ConversationItemList>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.items.delete": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.items.delete(itemID: string, params: ItemDeleteParams) -> APIPromise<ConversationsAPI.Conversation>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.items.list": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.items.list(conversationID: string, query: ItemListParams | null | undefined = {}) -> PagePromise<ConversationItemsPage, ConversationItem>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.items.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.items.retrieve(itemID: string, params: ItemRetrieveParams) -> APIPromise<ConversationItem>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.retrieve(conversationID: string) -> APIPromise<Conversation>; use only dedicated disposable test resources."
+  },
+  "endpoint:conversations.update": {
+    "args": null,
+    "note": "Supply valid arguments for conversations.update(conversationID: string, body: ConversationUpdateParams) -> APIPromise<Conversation>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.calls.accept": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.calls.accept(callID: string, body: CallAcceptParams) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.calls.hangup": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.calls.hangup(callID: string) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.calls.refer": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.calls.refer(callID: string, body: CallReferParams) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.calls.reject": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.calls.reject(callID: string, body: CallRejectParams | null | undefined = {}) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.clientSecrets.create": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.clientSecrets.create(body: ClientSecretCreateParams) -> APIPromise<ClientSecretCreateResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.cancel": {
+    "args": null,
+    "note": "Supply valid arguments for responses.cancel(responseID: string) -> APIPromise<Response>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.compact": {
+    "args": null,
+    "note": "Supply valid arguments for responses.compact(body: ResponseCompactParams) -> APIPromise<CompactedResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.create": {
+    "args": null,
+    "note": "Supply valid arguments for responses.create(body: ResponseCreateParams) -> APIPromise<Response> | APIPromise<Stream<ResponseStreamEvent>>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.delete": {
+    "args": null,
+    "note": "Supply valid arguments for responses.delete(responseID: string) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.inputItems.list": {
+    "args": null,
+    "note": "Supply valid arguments for responses.inputItems.list(responseID: string, query: InputItemListParams | null | undefined = {}) -> PagePromise<ResponseItemsPage, ResponsesAPI.ResponseItem>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.inputTokens.count": {
+    "args": null,
+    "note": "Supply valid arguments for responses.inputTokens.count(body: InputTokenCountParams | null | undefined = {}) -> APIPromise<InputTokenCountResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:responses.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for responses.retrieve(responseID: string, query: ResponseRetrieveParams | undefined = {}) -> APIPromise<Response> | APIPromise<Stream<ResponseStreamEvent>>; use only dedicated disposable test resources."
+  },
+  "features:7.3.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:realtime.calls.create": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.calls.create(body: CallCreateParams) -> APIPromise<Response>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.create": {
+    "args": null,
+    "note": "Supply valid arguments for live.create(body: LiveCreateParams) -> APIPromise<LiveCreateResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.accept": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.accept(sessionID: string, body: SessionAcceptParams) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.downloadRecording": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.downloadRecording(sessionID: string) -> APIPromise<Response>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.fork": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.fork(sessionID: string, body: SessionForkParams) -> APIPromise<SessionForkResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.hangup": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.hangup(sessionID: string) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.refer": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.refer(sessionID: string, body: SessionReferParams) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:live.sessions.reject": {
+    "args": null,
+    "note": "Supply valid arguments for live.sessions.reject(sessionID: string, body: SessionRejectParams) -> APIPromise<void>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.create": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.create(body: WebhookCreateParams) -> APIPromise<WebhookEndpointWithSecret>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.delete": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.delete(webhookEndpointID: string) -> APIPromise<DeletedWebhookEndpoint>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.eventTypes.list": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.eventTypes.list() -> APIPromise<WebhooksAPI.WebhookEventTypeList>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.list": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.list(query: WebhookListParams | null | undefined = {}) -> PagePromise<WebhookEndpointsPage, WebhookEndpoint>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.retrieve(webhookEndpointID: string) -> APIPromise<WebhookEndpoint>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.rotateSecret": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.rotateSecret(webhookEndpointID: string, body: WebhookRotateSecretParams | null | undefined = {}) -> APIPromise<WebhookEndpointWithSecret>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.test": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.test(webhookEndpointID: string, body: WebhookTestParams) -> APIPromise<WebhookEndpointTestResult>; use only dedicated disposable test resources."
+  },
+  "endpoint:webhooks.update": {
+    "args": null,
+    "note": "Supply valid arguments for webhooks.update(webhookEndpointID: string, body: WebhookUpdateParams | null | undefined = {}) -> APIPromise<WebhookEndpoint>; use only dedicated disposable test resources."
+  },
+  "endpoint:realtime.translations.clientSecrets.create": {
+    "args": null,
+    "note": "Supply valid arguments for realtime.translations.clientSecrets.create(body: ClientSecretCreateParams) -> APIPromise<RealtimeAPI.RealtimeTranslationClientSecretCreateResponse>; use only dedicated disposable test resources."
+  }
+}

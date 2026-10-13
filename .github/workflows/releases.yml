@@ -1,0 +1,159 @@
+name: Discover releases and run live compatibility
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+    inputs:
+      from_version:
+        description: First published version (empty means 7.3.0)
+        type: string
+      to_version:
+        description: Last published version (empty means latest)
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - cases/**
+      - fixtures/**
+      - lib/**
+      - scripts/**
+      - releases.json
+      - package.json
+      - package-lock.json
+      - .github/workflows/releases.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sdk-release-compatibility
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      latest: ${{ steps.discover.outputs.latest }}
+      new_published: ${{ steps.discover.outputs.new_published }}
+      first_new: ${{ steps.discover.outputs.first_new }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - id: discover
+        run: npm run discover
+        env:
+          NPM_REGISTRY: https://registry.npmjs.org
+      - run: node scripts/gap-report.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: discovered-cases
+          path: |
+            releases.json
+            cases/
+            fixtures/template.json
+          retention-days: 14
+      - name: Open a draft test PR without overwriting ongoing reviews
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PR_TOKEN || github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if git diff --quiet -- releases.json cases/catalog.json fixtures/template.json; then
+            echo "No new release inventory or cases."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          branch="automation/openai-release-tests-${GITHUB_RUN_ID}"
+          # Do not overwrite review edits on an existing PR branch.
+          count="$(gh pr list --state open --json headRefName --jq '[.[] | select(.headRefName | startswith("automation/openai-release-tests-"))] | length')"
+          if [ "$count" -gt 0 ]; then
+            echo "::warning::A release test PR is already open. Merge or close it before generating the next one; inventory artifacts are available."
+            exit 0
+          fi
+          git switch -c "$branch"
+          git add releases.json cases/catalog.json fixtures/template.json
+          git commit -m "test: add OpenAI SDK release coverage obligations" \
+            -m $'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 8cbbdf72-c396-463b-a821-2d6d9ec3454b'
+          git push origin "HEAD:$branch"
+          gh pr create --draft --head "$branch" --base "$DEFAULT_BRANCH" \
+            --title "test: update OpenAI SDK release coverage" \
+            --body "Generated endpoint cases and fixture slots from tagged SDK sources, with request/response/helper signature diffs and changelog feature obligations. Draft cases intentionally fail strict coverage until reviewed with valid live inputs, semantic assertions, and per-feature evidence. No credentials or response bodies are included. See the discovery workflow artifacts for per-version gaps."
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: release-coverage-gaps
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  live:
+    needs: discover
+    if: >-
+      vars.LIVE_ENABLED == 'true' &&
+      (github.event_name != 'schedule' || needs.discover.outputs.new_published == 'true')
+    runs-on: ubuntu-latest
+    environment: openai-live
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Use the exact inventory and cases from discovery
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: discovered-cases
+          path: .
+      - name: Materialize private live fixtures
+        env:
+          LIVE_FIXTURES_JSON: ${{ secrets.LIVE_FIXTURES_JSON }}
+        run: |
+          node --input-type=module -e '
+            import { writeFile } from "node:fs/promises";
+            const raw = process.env.LIVE_FIXTURES_JSON;
+            if (!raw) throw new Error("Configure LIVE_FIXTURES_JSON in the openai-live environment");
+            try { JSON.parse(raw); } catch { throw new Error("LIVE_FIXTURES_JSON is invalid JSON; content redacted"); }
+            await writeFile("fixtures/live.json", raw, { mode: 0o600 });
+          '
+      - name: Run 7.3.0 then each subsequent published version in order
+        run: npm run test:versions
+        env:
+          ALLOW_LIVE_API: 'true'
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_ADMIN_API_KEY: ${{ secrets.OPENAI_ADMIN_API_KEY }}
+          OPENAI_ORG_ID: ${{ vars.OPENAI_ORG_ID }}
+          OPENAI_PROJECT_ID: ${{ vars.OPENAI_PROJECT_ID }}
+          OPENAI_TEST_TEXT_MODEL: ${{ vars.OPENAI_TEST_TEXT_MODEL || 'gpt-4.1-mini' }}
+          OPENAI_TEST_EMBEDDING_MODEL: ${{ vars.OPENAI_TEST_EMBEDDING_MODEL || 'text-embedding-3-small' }}
+          LIVE_FIXTURES: fixtures/live.json
+          FROM_VERSION: ${{ inputs.from_version || '7.3.0' }}
+          TO_VERSION: ${{ inputs.to_version || needs.discover.outputs.latest }}
+          NPM_REGISTRY: https://registry.npmjs.org
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: live-compatibility-results
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Remove private fixtures
+        if: always()
+        run: rm -f fixtures/live.json
