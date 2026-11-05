@@ -1,5 +1,10 @@
 # OpenAI Node SDK live compatibility
 
+**Azure comparison:** see [Azure/OpenAI compatibility](compat/README.md) for
+legacy `@azure/openai` migration contracts, current Azure type-extension probes,
+an explicit gap report, and optional live tests authenticated through Key Vault
+and GitHub OIDC. Run `npm run test:azure` and `npm run azure:report` offline.
+
 This standalone suite discovers stable `openai` releases starting at **7.3.0**.
 It inventories public HTTP endpoint methods using both `api.md` and the reachable
 resource graph in the tagged TypeScript source: `api.md` alone omits some methods.
