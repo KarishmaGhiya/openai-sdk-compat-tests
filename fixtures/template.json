@@ -1538,5 +1538,221 @@
   "features:7.32.0": {
     "args": null,
     "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:admin.organization.projects.apiKeys.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.apiKeys.update(apiKeyID: string, params: APIKeyUpdateParams) -> APIPromise<ProjectAPIKey>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.usage.decisions": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.usage.decisions(query: UsageDecisionsParams) -> APIPromise<UsageDecisionsResponse>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.vaults.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.vaults.update(vaultID: string, body: VaultUpdateParams) -> APIPromise<Vault>; use only dedicated disposable test resources."
+  },
+  "features:7.33.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.34.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.35.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.36.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.37.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.38.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.39.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:audio.voiceConsents.create": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voiceConsents.create(body: VoiceConsentCreateParams) -> APIPromise<VoiceConsent>; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.voiceConsents.delete": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voiceConsents.delete(consentID: string) -> APIPromise<VoiceConsentDeleted>; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.voiceConsents.list": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voiceConsents.list(query: VoiceConsentListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<VoiceConsentsPage, VoiceConsent>; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.voiceConsents.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voiceConsents.retrieve(consentID: string) -> APIPromise<VoiceConsent>; use only dedicated disposable test resources."
+  },
+  "endpoint:audio.voiceConsents.update": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voiceConsents.update(consentID: string, body: VoiceConsentUpdateParams) -> APIPromise<VoiceConsent>; use only dedicated disposable test resources."
+  },
+  "features:7.40.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.41.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:audio.voices.delete": {
+    "args": null,
+    "note": "Supply valid arguments for audio.voices.delete(voiceID: string) -> APIPromise<VoiceDeleted>; use only dedicated disposable test resources."
+  },
+  "features:7.42.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.43.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.agents.automations.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.create(body: AutomationCreateParams) -> APIPromise<Automation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.delete": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.delete(automationID: string) -> APIPromise<AutomationDeleted>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.invocations.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.invocations.create(automationID: string) -> APIPromise<AutomationInvocation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.invocations.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.invocations.list(automationID: string, query: InvocationListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<AutomationInvocationsPage, AutomationInvocation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.invocations.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.invocations.retrieve(invocationID: string, params: InvocationRetrieveParams) -> APIPromise<AutomationInvocation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.list(query: AutomationListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<AutomationsPage, Automation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.pause": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.pause(automationID: string) -> APIPromise<Automation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.resume": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.resume(automationID: string) -> APIPromise<Automation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.retrieve(automationID: string) -> APIPromise<Automation>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.automations.update": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.automations.update(automationID: string, body: AutomationUpdateParams) -> APIPromise<Automation>; use only dedicated disposable test resources."
+  },
+  "features:7.44.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.45.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:admin.organization.externalKeys.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalKeys.create(body: ExternalKeyCreateParams) -> APIPromise<ExternalKey>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalKeys.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalKeys.delete(externalKeyID: string) -> APIPromise<ExternalKey>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalKeys.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalKeys.list(query: ExternalKeyListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<ExternalKeysPage, ExternalKey>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalKeys.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalKeys.retrieve(externalKeyID: string) -> APIPromise<ExternalKey>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.externalKeys.validate": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.externalKeys.validate(externalKeyID: string) -> APIPromise<ExternalKeyValidateResponse>; use only dedicated disposable test resources."
+  },
+  "features:7.46.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.47.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.48.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.create(body: WorkloadIdentityProviderCreateParams) -> APIPromise<WorkloadIdentityProvider>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.delete(workloadIdentityProviderID: string) -> APIPromise<WorkloadIdentityProviderDeleted>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.federationRules.create": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.federationRules.create(workloadIdentityProviderID: string, body: FederationRuleCreateParams) -> APIPromise<FederationRule>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.federationRules.delete": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.federationRules.delete(workloadIdentityFederationRuleID: string, params: FederationRuleDeleteParams) -> APIPromise<FederationRuleDeleted>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.federationRules.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.federationRules.list(workloadIdentityProviderID: string, query: FederationRuleListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<FederationRulesPage, FederationRule>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.federationRules.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.federationRules.retrieve(workloadIdentityFederationRuleID: string, params: FederationRuleRetrieveParams) -> APIPromise<FederationRule>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.federationRules.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.federationRules.update(workloadIdentityFederationRuleID: string, params: FederationRuleUpdateParams) -> APIPromise<FederationRule>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.list": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.list(query: WorkloadIdentityProviderListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<WorkloadIdentityProvidersPage, WorkloadIdentityProvider>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.retrieve(workloadIdentityProviderID: string) -> APIPromise<WorkloadIdentityProvider>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.workloadIdentityProviders.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.workloadIdentityProviders.update(workloadIdentityProviderID: string, body: WorkloadIdentityProviderUpdateParams | null | undefined = {}) -> APIPromise<WorkloadIdentityProvider>; use only dedicated disposable test resources."
+  },
+  "features:7.49.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:admin.organization.projects.serviceTierSettings.retrieve": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceTierSettings.retrieve(projectID: string) -> APIPromise<ProjectServiceTierSettings>; use only dedicated disposable test resources."
+  },
+  "endpoint:admin.organization.projects.serviceTierSettings.update": {
+    "args": null,
+    "note": "Supply valid arguments for admin.organization.projects.serviceTierSettings.update(projectID: string, body: ServiceTierSettingUpdateParams) -> APIPromise<ProjectServiceTierSettings>; use only dedicated disposable test resources."
+  },
+  "features:7.50.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
   }
 }
