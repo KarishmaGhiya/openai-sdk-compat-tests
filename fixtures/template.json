@@ -1518,5 +1518,25 @@
   "endpoint:realtime.translations.clientSecrets.create": {
     "args": null,
     "note": "Supply valid arguments for realtime.translations.clientSecrets.create(body: ClientSecretCreateParams) -> APIPromise<RealtimeAPI.RealtimeTranslationClientSecretCreateResponse>; use only dedicated disposable test resources."
+  },
+  "features:7.30.1": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "endpoint:beta.agents.environments.create": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.create(params: EnvironmentCreateParams) -> APIPromise<EnvironmentInfo>; use only dedicated disposable test resources."
+  },
+  "endpoint:beta.agents.environments.list": {
+    "args": null,
+    "note": "Supply valid arguments for beta.agents.environments.list(query: EnvironmentListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<EnvironmentInfosPage, EnvironmentInfo>; use only dedicated disposable test resources."
+  },
+  "features:7.31.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
+  },
+  "features:7.32.0": {
+    "args": null,
+    "note": "Configure reviewed release-specific scenarios in cases/catalog.json, then add their fixture keys here."
   }
 }

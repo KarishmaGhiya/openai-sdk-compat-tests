@@ -43016,5 +43016,638 @@
     ],
     "ready": false,
     "steps": []
+  },
+  {
+    "id": "features:7.30.1",
+    "since": "7.30.1",
+    "covers": [
+      "method:7.30.1:audio.voices.create",
+      "surface:7.30.1:src/resources/audio/voices.ts#Voice.type:95d34f4580d0",
+      "surface:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams:94301d00937e",
+      "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.name",
+      "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.prompt",
+      "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.type",
+      "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.model",
+      "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.script_hint"
+    ],
+    "title": "Live regression cases for 7.30.1 additions and changes",
+    "requirements": [
+      {
+        "id": "method:7.30.1:audio.voices.create",
+        "description": "Changed audio.voices.create: post /audio/voices (body: VoiceCreateParams) -> APIPromise<Voice>"
+      },
+      {
+        "id": "surface:7.30.1:src/resources/audio/voices.ts#Voice.type:95d34f4580d0",
+        "description": "changed: src/resources/audio/voices.ts#Voice.type"
+      },
+      {
+        "id": "surface:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams:94301d00937e",
+        "description": "changed: src/resources/audio/voices.ts#VoiceCreateParams"
+      },
+      {
+        "id": "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.name",
+        "description": "Removed public surface: src/resources/audio/voices.ts#VoiceCreateParams.Prompt.name"
+      },
+      {
+        "id": "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.prompt",
+        "description": "Removed public surface: src/resources/audio/voices.ts#VoiceCreateParams.Prompt.prompt"
+      },
+      {
+        "id": "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.type",
+        "description": "Removed public surface: src/resources/audio/voices.ts#VoiceCreateParams.Prompt.type"
+      },
+      {
+        "id": "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.model",
+        "description": "Removed public surface: src/resources/audio/voices.ts#VoiceCreateParams.Prompt.model"
+      },
+      {
+        "id": "removed:7.30.1:src/resources/audio/voices.ts#VoiceCreateParams.Prompt.script_hint",
+        "description": "Removed public surface: src/resources/audio/voices.ts#VoiceCreateParams.Prompt.script_hint"
+      }
+    ],
+    "ready": false,
+    "steps": []
+  },
+  {
+    "id": "endpoint:beta.agents.environments.create",
+    "since": "7.31.0",
+    "covers": [
+      "endpoint:beta.agents.environments.create"
+    ],
+    "title": "Live beta.agents.environments.create",
+    "method": "beta.agents.environments.create",
+    "endpoint": "post /agents/environments",
+    "signature": "(params: EnvironmentCreateParams) -> APIPromise<EnvironmentInfo>",
+    "source": "src/resources/beta/agents/environments/environments.ts",
+    "optionsIndex": 1,
+    "assertions": [
+      {
+        "path": "id",
+        "op": "type",
+        "value": "string"
+      },
+      {
+        "path": "files",
+        "op": "type",
+        "value": "array"
+      },
+      {
+        "path": "object",
+        "op": "equals",
+        "value": "agent.environment"
+      },
+      {
+        "path": "plugins",
+        "op": "type",
+        "value": "array"
+      },
+      {
+        "path": "skills",
+        "op": "type",
+        "value": "array"
+      }
+    ],
+    "ready": false,
+    "steps": [
+      {
+        "id": "request",
+        "method": "beta.agents.environments.create",
+        "fixture": "endpoint:beta.agents.environments.create",
+        "optionsIndex": 1,
+        "assertions": [
+          {
+            "path": "id",
+            "op": "type",
+            "value": "string"
+          },
+          {
+            "path": "files",
+            "op": "type",
+            "value": "array"
+          },
+          {
+            "path": "object",
+            "op": "equals",
+            "value": "agent.environment"
+          },
+          {
+            "path": "plugins",
+            "op": "type",
+            "value": "array"
+          },
+          {
+            "path": "skills",
+            "op": "type",
+            "value": "array"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "endpoint:beta.agents.environments.list",
+    "since": "7.31.0",
+    "covers": [
+      "endpoint:beta.agents.environments.list"
+    ],
+    "title": "Live beta.agents.environments.list",
+    "method": "beta.agents.environments.list",
+    "endpoint": "get /agents/environments",
+    "signature": "(query: EnvironmentListParams | ({ [K in 'headers' | 'maxRetries' | 'timeout' | 'signal' | 'idempotencyKey' | 'query']?: RequestOptions[K]; } & { [K in 'method' | 'path' | 'body' | 'stream' | 'httpAgent' | 'fetchOptions' | 'defaultBaseURL' | '__metadata' | '__binaryRequest' | '__binaryResponse' | '__streamClass' | '__security' | '__synthesizeEventData']?: never; }) | null | undefined = {}) -> PagePromise<EnvironmentInfosPage, EnvironmentInfo>",
+    "source": "src/resources/beta/agents/environments/environments.ts",
+    "optionsIndex": 1,
+    "assertions": [
+      {
+        "path": "object",
+        "op": "equals",
+        "value": "list"
+      },
+      {
+        "path": "first_id",
+        "op": "type",
+        "value": "string"
+      },
+      {
+        "path": "last_id",
+        "op": "type",
+        "value": "string"
+      },
+      {
+        "path": "data",
+        "op": "type",
+        "value": "array"
+      },
+      {
+        "path": "has_more",
+        "op": "type",
+        "value": "boolean"
+      },
+      {
+        "path": "#client",
+        "op": "exists"
+      }
+    ],
+    "ready": false,
+    "steps": [
+      {
+        "id": "request",
+        "method": "beta.agents.environments.list",
+        "fixture": "endpoint:beta.agents.environments.list",
+        "optionsIndex": 1,
+        "assertions": [
+          {
+            "path": "object",
+            "op": "equals",
+            "value": "list"
+          },
+          {
+            "path": "first_id",
+            "op": "type",
+            "value": "string"
+          },
+          {
+            "path": "last_id",
+            "op": "type",
+            "value": "string"
+          },
+          {
+            "path": "data",
+            "op": "type",
+            "value": "array"
+          },
+          {
+            "path": "has_more",
+            "op": "type",
+            "value": "boolean"
+          },
+          {
+            "path": "#client",
+            "op": "exists"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "features:7.31.0",
+    "since": "7.31.0",
+    "covers": [
+      "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam:a45cdb4a17bf",
+      "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamOpenAIHosted.environment_id:bf54a6653b39",
+      "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamPrewarmed:01220444fd7a",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#Environments.create:1f8def216d62",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#Environments.list:243d43f29ec9",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.object:b40405f559c6",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.first_id:1f3bae82829b",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.last_id:5ffd197558da",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status:eea10f1436e9",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.environment:3446182ceca7",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.vault_ids:74f703bb6aed",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.'Idempotency-Key':6a1cfc51b526",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.type:bde6f495a97a",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.capability_directories:261d31bb087d",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.desktop:048c601f62de",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.env:d5c585213a6c",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.environment_template_id:b7d9f640fee6",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.files:a0617d0d10f9",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.network:21559c6460ae",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.packages:ee9ff670e204",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.plugins:457c8cd2c8b9",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.setup_commands:54f39f2d3743",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.skills:d9eaf6653e7f",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Desktop.enabled:d3323d0e066a",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.access:432ee927eae1",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.allowed_domains:880000b3016d",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.blocked_domains:10fd3ad314fe",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.npm:54820b68a926",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.python:cf0ec061d75f",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.system:fed62e100d5b",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.order:55def380f6fd",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.type:ecf5f25a06df",
+      "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.$extends:f356989e601f",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.id:3046801a00cf",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.created_at:4bf2d807cba3",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.data:54f927527158",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.object:27faf4900f91",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.type:ad70e6df3f5c",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.Data.id:3046801a00cf",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.id:3046801a00cf",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.created_at:4bf2d807cba3",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.data:db9678e76bef",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.object:27faf4900f91",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.type:12327a61bbd6",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.Data.id:3046801a00cf",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent:066db1c6358d",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types:3a54e092c8e1",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types:8f829ba24b9b",
+      "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type:0f4535aa1e5d",
+      "changelog:7.31.0:a4fcc54b733b3bbf"
+    ],
+    "title": "Live regression cases for 7.31.0 additions and changes",
+    "requirements": [
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam:a45cdb4a17bf",
+        "description": "changed: src/resources/beta/agents/agents.ts#EnvironmentParam"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamOpenAIHosted.environment_id:bf54a6653b39",
+        "description": "added: src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamOpenAIHosted.environment_id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamPrewarmed:01220444fd7a",
+        "description": "added: src/resources/beta/agents/agents.ts#EnvironmentParam.EnvironmentParamPrewarmed"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#Environments.create:1f8def216d62",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#Environments.create"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#Environments.list:243d43f29ec9",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#Environments.list"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.object:b40405f559c6",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.object"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.first_id:1f3bae82829b",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.first_id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.last_id:5ffd197558da",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentInfosPage.last_id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status:eea10f1436e9",
+        "description": "changed: src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.environment:3446182ceca7",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.environment"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.vault_ids:74f703bb6aed",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.vault_ids"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.'Idempotency-Key':6a1cfc51b526",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.'Idempotency-Key'"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.type:bde6f495a97a",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.type"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.capability_directories:261d31bb087d",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.capability_directories"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.desktop:048c601f62de",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.desktop"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.env:d5c585213a6c",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.env"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.environment_template_id:b7d9f640fee6",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.environment_template_id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.files:a0617d0d10f9",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.files"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.network:21559c6460ae",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.network"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.packages:ee9ff670e204",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.packages"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.plugins:457c8cd2c8b9",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.plugins"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.setup_commands:54f39f2d3743",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.setup_commands"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.skills:d9eaf6653e7f",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.skills"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Desktop.enabled:d3323d0e066a",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Desktop.enabled"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.access:432ee927eae1",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.access"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.allowed_domains:880000b3016d",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.allowed_domains"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.blocked_domains:10fd3ad314fe",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Network.blocked_domains"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.npm:54820b68a926",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.npm"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.python:cf0ec061d75f",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.python"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.system:fed62e100d5b",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentCreateParams.Environment.Packages.system"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.order:55def380f6fd",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.order"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.type:ecf5f25a06df",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.type"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.$extends:f356989e601f",
+        "description": "added: src/resources/beta/agents/environments/environments.ts#EnvironmentListParams.$extends"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.created_at:4bf2d807cba3",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.created_at"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.data:54f927527158",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.data"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.object:27faf4900f91",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.object"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.type:ad70e6df3f5c",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.type"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.Data.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentFailedWebhookEvent.Data.id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.created_at:4bf2d807cba3",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.created_at"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.data:db9678e76bef",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.data"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.object:27faf4900f91",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.object"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.type:12327a61bbd6",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.type"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.Data.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentReadyWebhookEvent.Data.id"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent:066db1c6358d",
+        "description": "changed: src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types:3a54e092c8e1",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types:8f829ba24b9b",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types"
+      },
+      {
+        "id": "surface:7.31.0:src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type:0f4535aa1e5d",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type"
+      },
+      {
+        "id": "changelog:7.31.0:a4fcc54b733b3bbf",
+        "description": "**api:** add prewarmed hosted environments"
+      }
+    ],
+    "ready": false,
+    "steps": []
+  },
+  {
+    "id": "features:7.32.0",
+    "since": "7.32.0",
+    "covers": [
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.environment:b8e6def2523a",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.event_id:42a68b4617d2",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.session_id:a46a8d6270e9",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.turn_id:b913daa431d4",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.type:20677a4dc92f",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentState.status:2293b66999c4",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.environment:b8e6def2523a",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.event_id:42a68b4617d2",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.session_id:a46a8d6270e9",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.turn_id:b913daa431d4",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.type:ac8f7fa54761",
+      "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEvent:915b941977f0",
+      "surface:7.32.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status:5d7aa37b88a6",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.id:3046801a00cf",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.created_at:4bf2d807cba3",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.data:5a7257595bf2",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.object:27faf4900f91",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.type:6a1095a1823f",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.Data.id:3046801a00cf",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.id:3046801a00cf",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.created_at:4bf2d807cba3",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.data:a7a8525eb173",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.object:27faf4900f91",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.type:0b77452e81d8",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.Data.id:3046801a00cf",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent:547ca12e2567",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types:798b70872f8f",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types:54b318947970",
+      "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type:b5587d7b4dc0",
+      "changelog:7.32.0:deffe17e74210d60"
+    ],
+    "title": "Live regression cases for 7.32.0 additions and changes",
+    "requirements": [
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.environment:b8e6def2523a",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.environment"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.event_id:42a68b4617d2",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.event_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.session_id:a46a8d6270e9",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.session_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.turn_id:b913daa431d4",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.turn_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.type:20677a4dc92f",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentExpiredEvent.type"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentState.status:2293b66999c4",
+        "description": "changed: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentState.status"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.environment:b8e6def2523a",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.environment"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.event_id:42a68b4617d2",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.event_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.session_id:a46a8d6270e9",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.session_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.turn_id:b913daa431d4",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.turn_id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.type:ac8f7fa54761",
+        "description": "added: src/resources/beta/agents/agents.ts#AgentSessionEnvironmentSuspendedEvent.type"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/agents.ts#AgentSessionEvent:915b941977f0",
+        "description": "changed: src/resources/beta/agents/agents.ts#AgentSessionEvent"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status:5d7aa37b88a6",
+        "description": "changed: src/resources/beta/agents/environments/environments.ts#EnvironmentInfo.status"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.created_at:4bf2d807cba3",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.created_at"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.data:5a7257595bf2",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.data"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.object:27faf4900f91",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.object"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.type:6a1095a1823f",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.type"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.Data.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentExpiredWebhookEvent.Data.id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.created_at:4bf2d807cba3",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.created_at"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.data:a7a8525eb173",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.data"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.object:27faf4900f91",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.object"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.type:0b77452e81d8",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.type"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.Data.id:3046801a00cf",
+        "description": "added: src/resources/webhooks/webhooks.ts#AgentEnvironmentSuspendedWebhookEvent.Data.id"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent:547ca12e2567",
+        "description": "changed: src/resources/webhooks/webhooks.ts#UnwrapWebhookEvent"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types:798b70872f8f",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookCreateParams.event_types"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types:54b318947970",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookUpdateParams.event_types"
+      },
+      {
+        "id": "surface:7.32.0:src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type:b5587d7b4dc0",
+        "description": "changed: src/resources/webhooks/webhooks.ts#WebhookTestParams.event_type"
+      },
+      {
+        "id": "changelog:7.32.0:deffe17e74210d60",
+        "description": "**api:** add agent environment suspension and expiration"
+      }
+    ],
+    "ready": false,
+    "steps": []
   }
 ]
