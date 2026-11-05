@@ -1,0 +1,10 @@
+[
+  { "legacy": "getChatCompletions", "modern": "chat.completions.create", "contract": "chat", "notes": "maxTokens/topP/responseFormat/dataSources become snake_case; response usage/filter/context properties retain server snake_case." },
+  { "legacy": "streamChatCompletions", "modern": "chat.completions.create", "contract": "chat-stream", "notes": "Set stream:true; consume SDK async iterable. Response delta fields are snake_case." },
+  { "legacy": "getCompletions", "modern": "completions.create", "contract": "completions", "notes": "Move deployment/model and prompt into request body; camelCase options become snake_case." },
+  { "legacy": "streamCompletions", "modern": "completions.create", "contract": "completions-stream", "notes": "Set stream:true; consume SDK async iterable." },
+  { "legacy": "getEmbeddings", "modern": "embeddings.create", "contract": "embeddings", "notes": "Move input/model into body; specify encoding_format:float for numeric wire-format parity." },
+  { "legacy": "getImages", "modern": "images.generate", "contract": "images", "notes": "Move deployment/model and prompt into body; content-filter metadata needs Azure type extensions." },
+  { "legacy": "getAudioTranscription", "modern": "audio.transcriptions.create", "contract": "transcription", "notes": "Uint8Array audio becomes a named multipart file using toFile." },
+  { "legacy": "getAudioTranslation", "modern": "audio.translations.create", "contract": "translation", "notes": "Uint8Array audio becomes a named multipart file using toFile." }
+]

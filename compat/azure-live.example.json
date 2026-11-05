@@ -1,0 +1,16 @@
+{
+  "azureAuth": "key",
+  "endpoint": "https://YOUR-RESOURCE.openai.azure.com",
+  "apiVersion": "2024-10-21",
+  "azureApiKey": "REPLACE-IN-KEY-VAULT-ONLY",
+  "openaiApiKey": "REPLACE-IN-KEY-VAULT-ONLY",
+  "azureDeployments": {
+    "chat": "YOUR-CHAT-DEPLOYMENT",
+    "embeddings": "YOUR-EMBEDDING-DEPLOYMENT"
+  },
+  "openaiModels": {
+    "chat": "gpt-4.1-mini",
+    "embeddings": "text-embedding-3-small"
+  },
+  "suites": ["chat", "chat-stream", "embeddings"]
+}

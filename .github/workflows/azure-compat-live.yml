@@ -1,0 +1,57 @@
+name: Azure and OpenAI live compatibility
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_paid_tests:
+        description: Authorize paid calls to Azure OpenAI and OpenAI
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-openai-live-compat
+  cancel-in-progress: false
+
+jobs:
+  live:
+    if: github.ref == 'refs/heads/main' && inputs.confirm_paid_tests == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: openai-live
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run test:azure
+      - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Fetch Key Vault configuration in memory and run live tests
+        run: npm run test:azure:keyvault
+        env:
+          ALLOW_LIVE_API: 'true'
+          AZURE_LOG_LEVEL: error
+          OPENAI_LOG: 'off'
+          AZURE_KEYVAULT_URL: ${{ vars.AZURE_KEYVAULT_URL }}
+          AZURE_COMPAT_SECRET_NAME: ${{ vars.AZURE_COMPAT_SECRET_NAME || 'openai-azure-compat-config' }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: azure-live-results
+          path: reports/azure-live.json
+          if-no-files-found: ignore
+          retention-days: 7
