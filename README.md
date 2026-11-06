@@ -5,6 +5,12 @@ legacy `@azure/openai` migration contracts, current Azure type-extension probes,
 an explicit gap report, and optional live tests authenticated through Key Vault
 and GitHub OIDC. Run `npm run test:azure` and `npm run azure:report` offline.
 
+**Responses matrix:** `npm run test:responses` checks both pinned SDKs against
+OpenAI, Azure versioned, and Azure v1 transports. `npm run responses:report`
+lists native Azure type gaps, Responses additions/removals, streaming behavior
+changes, and missing live fixtures. See the same guide for full/selected live
+Responses runs; offline contracts are not evidence of live service parity.
+
 This standalone suite discovers stable `openai` releases starting at **7.3.0**.
 It inventories public HTTP endpoint methods using both `api.md` and the reachable
 resource graph in the tagged TypeScript source: `api.md` alone omits some methods.
@@ -45,7 +51,8 @@ npm run test:versions
   version. Cases apply from their `since` version; earlier feature tests carry
   forward. All version failures are recorded; later versions still run.
   SDK installation uses `--no-save --package-lock=false --ignore-scripts`.
-  Run `npm ci --ignore-scripts` afterward to restore the baseline installation.
+  Responses contracts run before paid tests; pinned dependencies are restored
+  automatically after the version loop.
 
 `FROM_VERSION` and `TO_VERSION` can narrow a manual run. `SDK_VERSION` selects a
 single installed version for `npm run test:live`. `NPM_REGISTRY` explicitly

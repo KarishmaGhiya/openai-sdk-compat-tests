@@ -27,8 +27,11 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test
       - run: npm run azure:report
+      - run: npm run responses:report
+        if: always()
       - run: node scripts/gap-report.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
           name: coverage-inventory-${{ matrix.os }}
           path: reports/
