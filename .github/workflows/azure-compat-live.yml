@@ -35,6 +35,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run test:azure
+      - run: npm run test:responses
+      - run: npm run responses:report
       - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
