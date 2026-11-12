@@ -1,0 +1,27 @@
+{
+  "create:instructions": {
+    "azure": {
+      "ready": true,
+      "scenario": {
+        "steps": [{
+          "id": "instructed",
+          "method": "responses.create",
+          "optionsIndex": 1,
+          "args": [{
+            "model": { "$env": "RESPONSES_MODEL" },
+            "input": "Say the required word.",
+            "instructions": "Reply with only the word compatibility.",
+            "store": false,
+            "max_output_tokens": 64
+          }],
+          "assertions": [{ "path": "output_text", "op": "matches", "value": "[Cc]ompatibility" }]
+        }],
+        "evidence": { "create:instructions": ["instructed"] }
+      }
+    },
+    "openai": {
+      "ready": false,
+      "note": "Review and supply the equivalent public OpenAI scenario before selecting this feature."
+    }
+  }
+}

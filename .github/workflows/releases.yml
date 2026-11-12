@@ -56,6 +56,14 @@ jobs:
         env:
           NPM_REGISTRY: https://registry.npmjs.org
       - run: node scripts/gap-report.mjs
+      - name: Check Responses contracts for every published version and generate review gaps
+        id: responses
+        continue-on-error: true
+        run: npm run responses:versions
+        env:
+          FROM_VERSION: ${{ inputs.from_version || '7.3.0' }}
+          TO_VERSION: ${{ inputs.to_version || steps.discover.outputs.latest }}
+          NPM_REGISTRY: https://registry.npmjs.org
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: discovered-cases
@@ -63,6 +71,8 @@ jobs:
             releases.json
             cases/
             fixtures/template.json
+            compat/responses-matrix.json
+            compat/responses-live.template.json
           retention-days: 14
       - name: Open a draft test PR without overwriting ongoing reviews
         env:
@@ -70,7 +80,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          if git diff --quiet -- releases.json cases/catalog.json fixtures/template.json; then
+          if git diff --quiet -- releases.json cases/catalog.json fixtures/template.json compat/responses-matrix.json compat/responses-live.template.json; then
             echo "No new release inventory or cases."
             exit 0
           fi
@@ -85,7 +95,7 @@ jobs:
             exit 0
           fi
           git switch -c "$branch"
-          git add releases.json cases/catalog.json fixtures/template.json
+          git add releases.json cases/catalog.json fixtures/template.json compat/responses-matrix.json compat/responses-live.template.json
           git commit -m "test: add OpenAI SDK release coverage obligations" \
             -m $'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 8cbbdf72-c396-463b-a821-2d6d9ec3454b'
           git push origin "HEAD:$branch"
@@ -99,6 +109,9 @@ jobs:
           path: reports/
           if-no-files-found: ignore
           retention-days: 14
+      - name: Fail on unreviewed Responses changes or contract regressions
+        if: steps.responses.outcome == 'failure'
+        run: exit 1
 
   live:
     needs: discover

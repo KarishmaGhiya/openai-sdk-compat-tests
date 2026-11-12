@@ -108,6 +108,126 @@ Raw prompts, generated text, response bodies, endpoint URLs, and secret values
 are not uploaded. Failed auth, absent metadata, or assertion errors fail the run.
 This is selected live coverage, not exhaustive API parity.
 
+## Responses feature matrix and gap reporting
+
+```powershell
+npm run test:responses
+npm run responses:report
+```
+
+The pinned snapshots inventory **848 features/fields in 7.3.0 and 923 in
+7.45.1**. Every reviewed fixture is compiled with and without the Azure
+companion and executed using real SDK clients with injected HTTP transports
+against public OpenAI, Azure versioned, and Azure `/openai/v1` routes.
+These are offline contracts, not recorded service successes.
+
+The inventory covers all nine Responses methods (including `parse`, `stream`,
+compaction, token counts, and input-item listing), every declared tool, input,
+output, content, format, tool-choice, status, and stream-event variant, plus
+individual fields of those variants, top-level request/response fields, and
+nested reasoning/text/cache/moderation/context/prompt controls. Referenced shared
+declarations are fingerprinted too. This does not exhaust every recursively
+nested property, parameter combination, or possible model-generated outcome.
+Schema changes fail review coverage even when an existing sample still compiles.
+
+`reports/responses-compatibility.json` and the GitHub job summary explicitly show:
+
+- The 13 native Azure type-extension gaps per pinned OpenAI version and whether
+  importing the companion resolves each one; legacy `enhancements` is separate.
+- **Zero Responses extensions from this stable Azure companion**. The legacy
+  standalone Azure client has no Responses resource; it is not an equivalent
+  Responses implementation and is not counted as a passing target.
+- The 76 additions and one removal between pinned Responses surfaces. The removed
+  field is `response.function_call_arguments.done.name`; raw JSON preservation
+  and whether a field remains natively typed are different questions.
+- Raw streaming `event: error` behavior: 7.3.0 yields the event while 7.45.1 throws
+  an SDK API error. Both behaviors are explicitly regression-tested.
+- Raw JSON Schema streaming parsing: 7.3.0 leaves `output_parsed` null while
+  7.45.1 parses the final object. This is a separate helper behavior change.
+- Missing contracts, unreviewed declaration changes/removals, and live fixture
+  requirements. Known reviewed differences remain visible without permanently
+  failing CI; new unreviewed changes fail.
+
+Daily release discovery runs **offline Responses contracts sequentially for every
+discovered published version**. `npm run responses:versions` does the same
+locally; `FROM_VERSION`/`TO_VERSION` can narrow it. It writes per-version JSON
+reports and restores pinned dependencies afterwards. New fixture/schema slots
+are drafts, never silently accepted. Generated review obligations are included
+in the existing draft release PR. `npm run responses:catalog` regenerates draft
+inventory; `-- --accept-contracts` is an explicit human-review acceptance step,
+not proof that live service tests have run.
+
+### Optional live Responses execution
+
+Add `"responses"` to the Key Vault configuration's `suites`, add a
+`responses` deployment/model to both `azureDeployments` and `openaiModels`,
+and add, for example:
+
+```json
+{
+  "responses": {
+    "mode": "selected",
+    "azureApiMode": "v1",
+    "features": ["method:create", "method:parse", "method:stream"]
+  }
+}
+```
+
+`azureApiMode` must explicitly be `v1`, `versioned`, or `both`. Azure v1 uses
+the plain OpenAI client; versioned routes use `AzureOpenAI`. Both pinned SDKs run
+against Azure and public OpenAI; there is no legacy Azure Responses target.
+Entra scopes are selected separately for the Azure v1 and versioned routes.
+
+Fourteen authored functional cases cover the nine methods, structured/text
+formats, function-call argument/result round trips, and previous-response state.
+Stored state is deleted even after an assertion failure; cleanup failures fail
+the case. Pagination traverses a second input-item page. Cancellation must
+actually exercise a queued/in-progress response; a response that finishes first
+does not pass the cancellation test. Override a builtin's `body`, `model`, or
+additional response `assertions` under
+`responses.cases[featureId][azure|openai]` when a dedicated deployment needs them.
+For example, background/cancel, compaction, and JSON mode may require different
+models or API versions; builtin availability is not a service-support claim.
+
+For exhaustive fixture obligations use `"mode": "full"` and omit `features`.
+`compat/responses-live.template.json` lists all remaining per-provider fixture
+slots. Copy and author non-secret scenarios inside `fixtures`, then configure
+`responses.caseFile` relative to that directory. The file is not automatically
+executed just because it exists. `fixtures/responses.example.json` shows an
+assertion-bearing scenario and feature evidence. It intentionally leaves the
+public OpenAI equivalent unreviewed.
+
+Scenarios use the existing `$env`, `$ref`, and `$file` directives. `$env` resolves
+only from `responses.values` in the in-memory Key Vault config plus the selected
+provider's `RESPONSES_MODEL`, not arbitrary runner environment variables. Keep
+secrets in those values, never in committed scenarios. Response creation must
+explicitly disable storage or provide deletion cleanup. Use the builtin adapter
+for `method:stream`; the helper is not an HTTP APIPromise.
+An authored `event:error` scenario may additionally declare
+`"expectedError": { "code": "THE_EXPECTED_SERVICE_EVENT_CODE" }` to compare a
+yielded SSE error in older SDKs with a typed stream exception in newer ones.
+Only that exact code on a status-less SDK SSE error is accepted; HTTP/auth
+failures, assertion errors, and cleanup failures are never converted to passes.
+
+Missing/invalid fixtures block **all suites before any paid call** and list
+feature/provider IDs in `reports/azure-live.json`. A selected run is always
+reported as incomplete matrix coverage even if its cases pass. A full run
+cannot silently select a subset. Explicit unsupported declarations require
+`unsupported: true`, a nonempty `reason`, and `classification` equal to
+`service-limitation`, `model-limitation`, or `api-version-limitation`; these are
+configuration declarations, not live verification and not passes.
+Absent SDK surface, service HTTP rejection, assertion failure, and missing
+fixtures have distinct statuses. Any nonpassing result fails the live workflow.
+Service errors are not automatically labeled as native SDK gaps.
+
+The full live matrix needs provider/model-specific resources and assertions for
+hosted tools, image/file inputs, MCP approvals, saved prompts, optional fields,
+and exceptional stream states. Generated schema samples contain fictional IDs
+and are **never sent to live services**. No live Responses parity is claimed
+until those fixtures are configured and actual runs pass. Large full matrices
+must fit the manual workflow's 45-minute budget or be run as explicitly partial
+selected batches; partial batches do not become full coverage automatically.
+
 ## Key Vault + GitHub OIDC
 
 Credentials stay in Azure Key Vault. No Azure client secret or API key needs to

@@ -39,4 +39,20 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.equal(login.with['client-secret'], undefined);
   const artifact = job.steps.find((step) => step.uses?.startsWith('actions/upload-artifact@'));
   assert.equal(artifact.with.path, 'reports/azure-live.json');
+  const contractsIndex = job.steps.findIndex((step) => step.run === 'npm run test:responses');
+  const loginIndex = job.steps.indexOf(login);
+  assert.ok(contractsIndex >= 0 && contractsIndex < loginIndex);
+});
+
+test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {
+  const workflow = YAML.parse(await readFile(join(root, '.github', 'workflows', 'releases.yml'), 'utf8'));
+  const steps = workflow.jobs.discover.steps;
+  const contracts = steps.find((step) => step.id === 'responses');
+  assert.equal(contracts.run, 'npm run responses:versions');
+  assert.equal(contracts.env.ALLOW_LIVE_API, undefined);
+  assert.equal(contracts['continue-on-error'], true);
+  assert.ok(steps.some((step) => step.if === "steps.responses.outcome == 'failure'" && step.run === 'exit 1'));
+  const draft = steps.find((step) => step.run?.includes('gh pr create'));
+  assert.ok(draft.run.includes('compat/responses-matrix.json'));
+  assert.ok(draft.run.includes('compat/responses-live.template.json'));
 });
