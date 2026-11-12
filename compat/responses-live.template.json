@@ -1,4 +1,14 @@
 {
+  "compact:image": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "compact:input": {
     "azure": {
       "ready": false,
@@ -369,6 +379,16 @@
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
     }
   },
+  "control:prompt_cache_options.ttl:12h": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "control:prompt_cache_options.ttl:30m": {
     "azure": {
       "ready": false,
@@ -630,6 +650,16 @@
     }
   },
   "create:conversation": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "create:image": {
     "azure": {
       "ready": false,
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
@@ -4149,6 +4179,16 @@
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
     }
   },
+  "input-field:configuration_update.text": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "input-field:custom_tool_call.async": {
     "azure": {
       "ready": false,
@@ -4540,6 +4580,16 @@
     }
   },
   "input-field:image_generation_call.status": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "input-field:image_generation_call.svg_usage": {
     "azure": {
       "ready": false,
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
@@ -6649,6 +6699,16 @@
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
     }
   },
+  "output-field:image_generation_call.svg_usage": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "output-field:local_shell_call.action": {
     "azure": {
       "ready": false,
@@ -7739,7 +7799,27 @@
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
     }
   },
+  "response:image": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "response:incomplete_details": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "response:input_transformations": {
     "azure": {
       "ready": false,
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
@@ -7970,6 +8050,16 @@
     }
   },
   "response:tool_choice": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "response:tool_usage": {
     "azure": {
       "ready": false,
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
@@ -8509,6 +8599,36 @@
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
     }
   },
+  "tool-field:image_generation.complexity": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "tool-field:image_generation.frame_count": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "tool-field:image_generation.frame_duration_ms": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
   "tool-field:image_generation.input_fidelity": {
     "azure": {
       "ready": false,
@@ -8590,6 +8710,16 @@
     }
   },
   "tool-field:image_generation.size": {
+    "azure": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    },
+    "openai": {
+      "ready": false,
+      "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
+    }
+  },
+  "tool-field:image_generation.svg": {
     "azure": {
       "ready": false,
       "note": "Supply a reviewed scenario with assertions and feature evidence, or an explicit unsupported declaration."
