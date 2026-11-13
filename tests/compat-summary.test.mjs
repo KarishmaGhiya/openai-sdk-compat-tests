@@ -61,10 +61,25 @@ test('unreviewed declarations and companion-unresolved fields change the offline
   report.packages[0].azureNativeTypeGaps[0].withAzureTypes = false;
   const summary = renderResponsesSummary(report);
   assert.match(summary, /Action required/);
-  assert.match(summary, /Some fields remain untyped/);
-  assert.match(summary, /2 native typing gaps; 1 remain unresolved/);
+  assert.match(summary, /Some actual client call sites remain untyped/);
+  assert.match(summary, /2 native declaration typing gaps; 1 declarations remain unresolved/);
   assert.match(summary, /Changed declaration: `responses.FutureOptions`/);
   assert.doesNotMatch(summary, /Offline coverage checks passed/);
+});
+
+test('offline summary distinguishes patched root exports from unresolved method-result typing', () => {
+  const report = offlineReport();
+  report.packages[0].azureNativeTypeGaps.push({
+    type: 'UploadPart', field: 'azure_block_id', withAzureTypes: true, callSite: { native: false, withAzureTypes: false, reviewedGap: true },
+  });
+  const summary = renderResponsesSummary(report);
+  assert.match(summary, /1 actual client-call typing gap remains/);
+  assert.match(summary, /root-export augmentation does not necessarily reach the method return type/);
+  assert.match(summary, /UploadPart.azure_block_id` \| Yes \| No/);
+  assert.doesNotMatch(summary, /3 native declaration typing gaps; 1 declarations remain unresolved/);
+  assert.match(summary, /Offline coverage checks passed/);
+  report.packages[0].azureNativeTypeGaps[2].callSite.reviewedGap = false;
+  assert.match(renderResponsesSummary(report), /Action required/);
 });
 
 test('live summary explains all twelve passes as partial coverage and identifies the actual SDK/provider comparison', () => {

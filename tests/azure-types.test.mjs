@@ -10,6 +10,9 @@ for (const packageName of ['openai', 'openai-current']) {
     assert.ok(fields.some((entry) => entry.type === 'ChatCompletionCreateParamsNonStreaming' && entry.field === 'data_sources'));
     assert.ok(fields.some((entry) => entry.type === 'UploadPart' && entry.field === 'azure_block_id'));
     assert.deepEqual(results.filter((entry) => !entry.withAzureTypes), [], 'Azure companion does not patch these public types');
+    assert.deepEqual(results.filter((entry) => !entry.callSite.withAzureTypes).map((entry) => `${entry.type}.${entry.field}`),
+      ['UploadPart.azure_block_id'], 'Known root-export versus actual upload method typing gap; review new gaps');
+    assert.ok(results.every((entry) => !entry.callSite.native));
   });
 
   test(`${packageName}: Azure On Your Data is checked at the actual chat API call site`, () => {

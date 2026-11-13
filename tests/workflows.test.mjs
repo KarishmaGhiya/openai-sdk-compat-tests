@@ -44,6 +44,13 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   const contractsIndex = job.steps.findIndex((step) => step.run === 'npm run test:responses');
   const loginIndex = job.steps.indexOf(login);
   assert.ok(contractsIndex >= 0 && contractsIndex < loginIndex);
+  const inputs = workflow.on.workflow_dispatch.inputs;
+  assert.equal(inputs.mode.default, 'configured');
+  assert.deepEqual(inputs.mode.options, ['configured', 'responses-core', 'azure-companion']);
+  const live = job.steps.find((step) => step.run === 'npm run test:azure:keyvault');
+  assert.equal(live.env.AZURE_COMPAT_MODE, '${{ inputs.mode }}');
+  assert.equal(live.env.AZURE_COMPANION_FEATURES, '${{ inputs.companion_features }}');
+  assert.equal(live.env.AZURE_COMPANION_CHAT_DEPLOYMENT, '${{ inputs.companion_chat_deployment }}');
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

@@ -31,9 +31,10 @@ const report = {
 await writeJSON('reports/azure-compatibility.json', report);
 const lines = [
   '## Azure/OpenAI SDK compatibility (offline)',
-  '', '| OpenAI SDK | Azure extension fields | Native | With companion | Unresolved |',
+  '', '| OpenAI SDK | Azure extension fields | Native declarations | Patched declarations | Untyped actual call sites |',
   '|---|---:|---:|---:|---:|',
-  ...packages.map((entry) => `| ${entry.version} | ${entry.fields.length} | ${entry.fields.filter((field) => field.native).length} | ${entry.fields.filter((field) => field.withAzureTypes).length} | ${entry.fields.filter((field) => !field.withAzureTypes).length} |`),
+  ...packages.map((entry) => `| ${entry.version} | ${entry.fields.length} | ${entry.fields.filter((field) => field.native).length} | ${entry.fields.filter((field) => field.withAzureTypes).length} | ${entry.fields.filter((field) => !field.callSite.withAzureTypes).length} |`),
+  '', 'The root UploadPart declaration is patched, but uploads.parts.create() still returns a type without azure_block_id in both pinned SDKs. This is a known typing gap, not proof of runtime data loss.',
   '', 'Legacy `enhancements` is not natively typed or added by the stable Azure companion; JSON transport pass-through is tested.',
   'Legacy camelCase methods/options/results require migration, not additional endpoints.',
   'Live service compatibility is not inferred from these offline results.',
@@ -41,4 +42,5 @@ const lines = [
 const summary = `${lines.join('\n')}\n`;
 console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
-if (packages.some((entry) => entry.fields.some((field) => !field.withAzureTypes))) process.exitCode = 1;
+if (packages.some((entry) => entry.fields.some((field) => !field.withAzureTypes ||
+  (!field.callSite.withAzureTypes && !field.callSite.reviewedGap)))) process.exitCode = 1;

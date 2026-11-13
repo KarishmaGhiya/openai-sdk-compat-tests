@@ -4,10 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       confirm_paid_tests:
-        description: Authorize paid calls to Azure OpenAI and OpenAI
+        description: Authorize paid API calls for the selected mode
         type: boolean
         required: true
         default: false
+      mode:
+        description: Run configured suites, all nine core Responses methods, or stable Azure companion scenarios
+        type: choice
+        options: [configured, responses-core, azure-companion]
+        default: configured
+      companion_features:
+        description: Companion mode only; comma-separated chat, chat-stream, grounding, grounding-stream, completions, images, upload-parts
+        type: string
+        default: chat,chat-stream
+      companion_chat_deployment:
+        description: Companion mode only; optional chat deployment override, without modifying Key Vault
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -56,6 +69,9 @@ jobs:
           ALLOW_LIVE_API: 'true'
           AZURE_LOG_LEVEL: error
           OPENAI_LOG: 'off'
+          AZURE_COMPAT_MODE: ${{ inputs.mode }}
+          AZURE_COMPANION_FEATURES: ${{ inputs.companion_features }}
+          AZURE_COMPANION_CHAT_DEPLOYMENT: ${{ inputs.companion_chat_deployment }}
           AZURE_KEYVAULT_URL: ${{ vars.AZURE_KEYVAULT_URL }}
           AZURE_COMPAT_SECRET_NAME: ${{ vars.AZURE_COMPAT_SECRET_NAME || 'openai-azure-compat-config' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
