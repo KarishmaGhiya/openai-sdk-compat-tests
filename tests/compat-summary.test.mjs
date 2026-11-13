@@ -144,3 +144,47 @@ test('empty runs and unselected Responses cannot be presented as complete Respon
   assert.match(summary, /Azure OpenAI \/ legacy @azure\/openai/);
   assert.doesNotMatch(summary, /legacy.*SDK version not recorded/);
 });
+
+test('HTTP failures explain observed steps and suspected causes in the main comparison table, not just expandable details', () => {
+  const report = { live: true, results: [
+    { suite: 'responses', provider: 'azure', client: 'baseline-azure-v1', version: '7.3.0',
+      feature: 'method:inputTokens.count', status: 'failed',
+      error: { status: 400, operation: 'responses.inputTokens.count', serviceSignals: ['unsupported', 'model'] } },
+    { suite: 'responses', provider: 'azure', client: 'current-azure-v1', version: '7.45.1',
+      feature: 'method:inputItems.list', status: 'failed',
+      error: { status: 404, operation: 'responses.inputItems.list', serviceSignals: ['not-found'] } },
+    { suite: 'responses', provider: 'openai', client: 'current-openai', version: '7.45.1',
+      feature: 'method:inputTokens.count', status: 'passed' },
+  ] };
+  const summary = renderLiveSummary(report);
+  const tokenRow = summary.split('\n').find((line) => line.startsWith('| Count input tokens |') && line.includes('HTTP 400'));
+  const itemsRow = summary.split('\n').find((line) => line.startsWith('| List stored input items across pages |') && line.includes('HTTP 404'));
+  assert.match(tokenRow, /Failed \(HTTP 400\)<br>Failed step: Count input tokens/);
+  assert.match(tokenRow, /Suspected Azure model\/service support limitation \(unconfirmed/);
+  assert.match(tokenRow, /\| Passed \|$/);
+  assert.match(itemsRow, /Failed \(HTTP 404\)<br>Failed step: Fetch first input-items page/);
+  assert.match(itemsRow, /Root cause unconfirmed; stored-response visibility\/routing/);
+  assert.doesNotMatch(itemsRow, /API is unsupported|SDK regression|cursor availability/);
+});
+
+test('inline failure explanations prefer explicit service evidence and safely handle absent or unrecognized diagnostics', () => {
+  const rows = [
+    { status: 400, serviceCode: 'DeploymentNotFound', serviceSignals: ['unsupported', 'model'] },
+    { status: 400, serviceCode: 'OperationNotSupported' },
+    { status: 404, serviceSignals: ['unknown-request-url'] },
+    { status: 404, operation: 'responses.inputItems.list.nextPage', serviceSignals: ['not-found'] },
+    { status: 400, serviceCode: 'SECRET-CODE', operation: 'SECRET-OPERATION', serviceSignals: ['SECRET-SIGNAL', 'constructor'] },
+    { status: 404, operation: 'responses.inputItems.list', serviceSignals: 'SECRET-SIGNALS' },
+    { status: 400, serviceCode: 'constructor', operation: 'constructor' },
+    { status: 403 },
+  ].map((error) => ({ suite: 'responses', provider: 'azure', client: 'baseline-azure-v1', version: '7.3.0',
+    feature: 'method:inputItems.list', status: 'failed', error: { ...error, message: 'SECRET-RAW-MESSAGE', rootCause: 'SECRET-CAUSE' } }));
+  const summary = renderLiveSummary({ live: true, results: rows });
+  const mainRow = summary.split('\n').find((line) => line.startsWith('| List stored input items across pages |') && line.includes('HTTP 400'));
+  assert.match(mainRow, /Service reports that the Azure deployment was not found/);
+  assert.match(mainRow, /Service reports that this operation is not supported/);
+  assert.match(mainRow, /Service did not recognize the request URL/);
+  assert.match(mainRow, /Failed step: Fetch next input-items page/);
+  assert.match(mainRow, /Root cause not captured; further investigation required/);
+  assert.doesNotMatch(summary, /SECRET-|function Object|function constructor/);
+});

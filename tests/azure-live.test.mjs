@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import * as SDK from 'openai-current';
 import { chatResponse, contracts, deployment, legacyTransport, modernTransport } from '../lib/azure-contract.mjs';
 import { liveSuites, runLiveCase, runLiveMatrix, validateLiveConfig, validateLivePrerequisites } from '../lib/azure-live.mjs';
-import { validateVaultConfig, withKeyVaultConfig } from '../lib/azure-keyvault.mjs';
+import { maskValues, validateVaultConfig, withKeyVaultConfig } from '../lib/azure-keyvault.mjs';
 import { readJSON, exec, root } from '../lib/io.mjs';
+import { renderLiveSummary } from '../lib/compat-summary.mjs';
 
 const config = () => ({
   endpoint: 'https://fixture.openai.azure.com', apiVersion: '2024-10-21',
@@ -102,6 +103,58 @@ test('Key Vault values are masked before use and remain in memory', async () => 
     },
   });
   assert.ok(called);
+});
+
+test('Key Vault masking preserves public report labels while masking private values before execution', async () => {
+  const value = { ...config(), azureAuth: 'key', suites: ['responses'],
+    azureDeployments: { responses: 'PRIVATE-DEPLOYMENT' }, openaiModels: { responses: 'PRIVATE-MODEL' },
+    responses: { mode: 'selected', azureApiMode: 'v1', features: ['method:inputTokens.count'],
+      values: { SEARCH_TOKEN: 'PRIVATE-TOKEN' } },
+    azureCompanion: { features: ['chat', 'chat-stream'], tokenParameter: 'max_completion_tokens' },
+  };
+  const raw = JSON.stringify(value);
+  const masks = [];
+  await withKeyVaultConfig({
+    vaultURL: 'https://fixture.vault.azure.net', secretName: 'test-config', allowLive: true,
+    client: { async getSecret() { return { value: raw }; } }, mask: (entry) => masks.push(entry),
+    run() {
+      for (const entry of [raw, value.azureApiKey, value.openaiApiKey, value.endpoint, value.apiVersion,
+        'PRIVATE-DEPLOYMENT', 'PRIVATE-MODEL', 'PRIVATE-TOKEN']) assert.ok(masks.includes(entry), entry);
+      for (const entry of ['key', 'responses', 'selected', 'v1', 'chat', 'chat-stream', 'max_completion_tokens']) {
+        assert.ok(!masks.includes(entry), entry);
+      }
+      let summary = renderLiveSummary({ live: true, responses: { mode: 'selected' }, results: [{
+        suite: 'responses', provider: 'azure', client: 'baseline-azure-v1', version: '7.3.0',
+        feature: 'method:inputTokens.count', status: 'failed',
+        error: { status: 400, operation: 'responses.inputTokens.count', serviceSignals: ['unsupported', 'model'] },
+      }] });
+      for (const entry of masks) summary = summary.replaceAll(entry, '***');
+      assert.match(summary, /Azure OpenAI v1 \/ baseline SDK 7.3.0/);
+      assert.match(summary, /all selected cases/);
+      assert.match(summary, /responses.create/);
+      assert.doesNotMatch(summary, /PRIVATE-|offline-azure-key|offline-openai-key/);
+    },
+  });
+});
+
+test('public enum values remain masked when used as credentials or private data, and unknown enum values are masked before validation', async () => {
+  const value = { ...config(), azureApiKey: 'v1', openaiApiKey: 'responses', azureAuth: 'PRIVATE-AUTH',
+    responses: { mode: 'PRIVATE-MODE', azureApiMode: 'PRIVATE-ROUTE', values: { TOKEN: 'selected' } },
+    'responses.mode': 'full', dataSources: [{ parameters: { secret: 'key' } }],
+  };
+  const raw = JSON.stringify(value);
+  const masks = [];
+  await assert.rejects(withKeyVaultConfig({
+    vaultURL: 'https://fixture.vault.azure.net', secretName: 'test-config', allowLive: true,
+    client: { async getSecret() { return { value: raw }; } }, mask: (entry) => masks.push(entry),
+    run() { assert.fail('Invalid configuration must not run'); },
+  }));
+  for (const entry of [raw, 'v1', 'responses', 'selected', 'full', 'key', 'PRIVATE-AUTH', 'PRIVATE-MODE', 'PRIVATE-ROUTE']) {
+    assert.ok(masks.includes(entry), entry);
+  }
+  const genericMasks = [];
+  maskValues({ mode: 'selected', nested: ['v1'] }, (entry) => genericMasks.push(entry));
+  assert.deepEqual(genericMasks, ['selected', 'v1']);
 });
 
 test('Key Vault does not retrieve credentials without explicit authorization', async () => {
