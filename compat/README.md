@@ -290,7 +290,10 @@ and cleanup), allowlisted service codes/parameter names, and a fixed set of
 recognized service-message hints. Original error messages, response IDs, model
 names, endpoint URLs, and credentials are not stored. A 404 alone cannot tell
 whether a route, response, or cursor was missing; a 400 alone cannot establish
-an SDK defect. Read the redacted failed-step details before drawing conclusions.
+an SDK defect. The main comparison table includes the failed step and a safe
+cause explanation beside the HTTP status. Inferences are explicitly marked
+suspected/unconfirmed; missing diagnostic evidence is reported as an unknown
+root cause, not an unsupported API or SDK defect.
 
 Add `"responses"` to the Key Vault configuration's `suites`, add a
 `responses` deployment/model to both `azureDeployments` and `openaiModels`,
@@ -402,10 +405,17 @@ still requires its API key from the vault.
 
 The workflow runs pinned `azure/login` using OIDC. The Node runner uses
 `AzureCliCredential` for that logged-in identity, fetches the JSON secret through
-`SecretClient`, masks the raw JSON and each string value, validates configuration,
+`SecretClient`, masks the raw JSON and private string values, validates configuration,
 and passes it directly to the live runner in memory. It does not write secrets
 to `$GITHUB_ENV`, job outputs, fixtures, or artifacts. Changing the vault secret
 rotates configuration without committing a repository change.
+
+Recognized public enum settings (suite names, authentication mode, Responses
+mode/route, and companion features/token parameter) are not registered as
+secrets. This keeps labels such as `Azure OpenAI v1` readable instead of
+`Azure OpenAI ***`. Credentials, endpoints, deployment/model names, custom
+values, and unrecognized setting values remain masked before validation.
+If a private value matches a public enum string, that string is still masked.
 
 Public-cloud resource root endpoints are supported by this initial workflow.
 Private vaults/inference endpoints require a network-connected runner; OIDC
