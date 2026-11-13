@@ -37,8 +37,10 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.ok(login);
   assert.equal(login.with.creds, undefined);
   assert.equal(login.with['client-secret'], undefined);
-  const artifact = job.steps.find((step) => step.uses?.startsWith('actions/upload-artifact@'));
+  const artifact = job.steps.find((step) => step.uses?.startsWith('actions/upload-artifact@') && step.with.name === 'azure-live-results');
   assert.equal(artifact.with.path, 'reports/azure-live.json');
+  const offlineArtifact = job.steps.find((step) => step.with?.name === 'sdk-compatibility-details');
+  assert.equal(offlineArtifact.with.path, 'reports/responses-compatibility.json');
   const contractsIndex = job.steps.findIndex((step) => step.run === 'npm run test:responses');
   const loginIndex = job.steps.indexOf(login);
   assert.ok(contractsIndex >= 0 && contractsIndex < loginIndex);

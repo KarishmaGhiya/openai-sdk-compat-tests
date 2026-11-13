@@ -148,6 +148,19 @@ Schema changes fail review coverage even when an existing sample still compiles.
   requirements. Known reviewed differences remain visible without permanently
   failing CI; new unreviewed changes fail.
 
+The job summary separates **SDK compatibility findings - offline checks** from
+**Live API results**. The offline section explains what packages were compared,
+groups Azure typing gaps by capability with their remedies, and explains how SDK
+behavior changes affect application code. Raw field inventories are expandable
+details, not a list of failed live tests. The live section provides an overall
+verdict and a feature-by-SDK/provider result table, explains partial coverage and
+nonpassing statuses, and states what was not measured.
+
+The live workflow uploads `sdk-compatibility-details` for the offline JSON and
+`azure-live-results` for live case outcomes. No extra inference calls are needed
+to generate either summary. A completed workflow's existing summary is not
+rewritten by changing the code; the new format appears on future runs.
+
 Daily release discovery runs **offline Responses contracts sequentially for every
 discovered published version**. `npm run responses:versions` does the same
 locally; `FROM_VERSION`/`TO_VERSION` can narrow it. It writes per-version JSON

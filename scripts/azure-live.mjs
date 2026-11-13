@@ -2,6 +2,8 @@ import { makeLiveClients, runLiveMatrix, validateLivePrerequisites } from '../li
 import { writeJSON } from '../lib/io.mjs';
 import { pathToFileURL } from 'node:url';
 import { makeResponsesLiveClients, runResponsesLiveMatrix } from '../lib/responses-live.mjs';
+import { appendFile } from 'node:fs/promises';
+import { renderLiveSummary } from '../lib/compat-summary.mjs';
 
 export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON) {
   if (process.env.ALLOW_LIVE_API !== 'true') throw new Error('Set ALLOW_LIVE_API=true to authorize paid live tests.');
@@ -20,11 +22,15 @@ export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON) {
     responses = await runResponsesLiveMatrix(config, blocked ? [] : await makeResponsesLiveClients(config));
     results.push(...responses.results.map((entry) => ({ ...entry, suite: 'responses' })));
   }
-  await writeJSON('reports/azure-live.json', {
+  const report = {
     versions, suites: config.suites, live: !blocked,
     scope: 'Selected suites only; not exhaustive API or semantic model equivalence.',
     ...(responses ? { responses: { mode: responses.mode, complete: responses.complete }, blockedBeforePaidCalls: blocked } : {}), results,
-  });
+  };
+  await writeJSON('reports/azure-live.json', report);
+  const summary = renderLiveSummary(report);
+  console.log(summary);
+  if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
   for (const entry of results) console.log(`${entry.status === 'passed' ? 'PASS' : 'FAIL'} ${entry.client ?? entry.provider} ${entry.feature ?? entry.suite} (${entry.status})`);
   if (results.some((entry) => entry.status !== 'passed')) process.exitCode = 1;
 }

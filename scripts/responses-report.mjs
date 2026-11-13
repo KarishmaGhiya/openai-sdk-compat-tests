@@ -4,6 +4,7 @@ import { responsesCoverage, responsesInventory, responsesPackages } from '../lib
 import { responsesStreamErrorDelivery, responsesStreamStructuredParsing } from '../lib/responses-contract.mjs';
 import { responsesBuiltinIds, responsesFeatureIds } from '../lib/responses-live.mjs';
 import { readJSON, writeJSON } from '../lib/io.mjs';
+import { renderResponsesSummary } from '../lib/compat-summary.mjs';
 
 const catalog = await readJSON('compat/responses-matrix.json');
 const packages = [];
@@ -35,6 +36,10 @@ const current = new Set(packages[1].responses.features);
 const report = {
   scope: 'Pinned SDK declarations and actual injected transports; not live service acceptance or every parameter combination.',
   packages,
+  references: {
+    azureCompanionVersion: (await readJSON('node_modules/@azure/openai/package.json')).version,
+    legacyAzureVersion: (await readJSON('node_modules/azure-openai-legacy/package.json')).version,
+  },
   responsesAddedByAzureCompanion: (await azureExtensionFields()).filter((field) => /^(Responses?|InputItem|InputToken)/.test(field.type)),
   legacyAzureResponses: { available: false, classification: 'no-legacy-equivalent-not-a-native-openai-gap' },
   responsesVersionDifferences: {
@@ -52,25 +57,7 @@ const report = {
   },
 };
 await writeJSON('reports/responses-compatibility.json', report);
-const lines = [
-  '## Responses and Azure SDK gaps (offline)',
-  '', '| SDK | Responses features | Native Azure type gaps | Stream error delivery | Missing contracts |',
-  '|---|---:|---:|---|---:|',
-  ...packages.map((entry) => `| ${entry.version} | ${entry.responses.featureCount} | ${entry.azureNativeTypeGaps.length} | ${entry.responses.errorDelivery} | ${entry.responses.missingContracts.length + entry.responses.unreviewedSchemas.length + entry.responses.unreviewedRemovals.length} |`),
-  '', `Azure companion Responses additions: ${report.responsesAddedByAzureCompanion.length}. Legacy Azure client has no Responses equivalent.`,
-  `Responses additions since baseline: ${report.responsesVersionDifferences.added.length}; removals: ${report.responsesVersionDifferences.removed.length}.`,
-  '', '### Native OpenAI type gaps supplied by the Azure companion',
-  ...[...new Set(packages.flatMap((entry) => entry.azureNativeTypeGaps.map((field) => `- \`${field.type}.${field.field}\` (${field.classification})`)))],
-  '', 'Legacy `enhancements` remains untyped with the stable companion. Runtime JSON pass-through is not proof of service support.',
-  '', '### New Responses feature obligations',
-  ...report.responsesVersionDifferences.added.map((id) => `- \`${id}\``),
-  '', '### Removed baseline fields or features',
-  ...report.responsesVersionDifferences.removed.map((id) => `- \`${id}\``),
-  '', 'Streaming error event delivery changes across the pinned versions; this is SDK behavioral drift, not an Azure-only capability gap.',
-  ...packages.map((entry) => `Raw JSON Schema streaming parsing in ${entry.version}: ${entry.responses.rawJsonSchemaStreamParsing}.`),
-  'No live service parity is claimed. Missing fixture IDs and explicitly unsupported service/model/API capabilities are reported separately by live runs.',
-];
-const summary = `${lines.join('\n')}\n`;
+const summary = renderResponsesSummary(report);
 console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
 if (packages.some((entry) => entry.responses.missingContracts.length || entry.responses.unreviewedSchemas.length || entry.responses.unreviewedRemovals.length ||
