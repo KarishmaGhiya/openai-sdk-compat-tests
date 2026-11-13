@@ -17,6 +17,10 @@ on:
         description: Companion mode only; comma-separated chat, chat-stream, grounding, grounding-stream, completions, images, upload-parts
         type: string
         default: chat,chat-stream
+      responses_features:
+        description: Optional comma-separated feature IDs in responses-core mode; blank runs all nine methods
+        type: string
+        default: ''
       companion_chat_deployment:
         description: Companion mode only; optional chat deployment override, without modifying Key Vault
         type: string
@@ -70,6 +74,7 @@ jobs:
           AZURE_LOG_LEVEL: error
           OPENAI_LOG: 'off'
           AZURE_COMPAT_MODE: ${{ inputs.mode }}
+          RESPONSES_LIVE_FEATURES: ${{ inputs.responses_features }}
           AZURE_COMPANION_FEATURES: ${{ inputs.companion_features }}
           AZURE_COMPANION_CHAT_DEPLOYMENT: ${{ inputs.companion_chat_deployment }}
           AZURE_KEYVAULT_URL: ${{ vars.AZURE_KEYVAULT_URL }}

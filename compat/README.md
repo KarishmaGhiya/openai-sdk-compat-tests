@@ -273,6 +273,25 @@ All nine must actually pass on every compared target before the summary reports
 9/9 verified; selecting the preset alone does not close live coverage gaps.
 The default workflow mode `configured` still uses your existing secret unchanged.
 
+For a narrow rerun, set the optional workflow `responses_features` input, for
+example `method:delete,method:inputItems.list,method:inputTokens.count`.
+It applies only to `responses-core`; leaving it blank selects all nine.
+Unknown/duplicate feature IDs still fail preflight. Existing provider routes,
+models, and per-feature overrides are retained, and the secret is not modified.
+
+Deletion accepts a valid JSON `response.deleted` acknowledgment or an empty
+204 response, then verifies that retrieving the deleted resource returns 404.
+It does not assume a `null` return just because the pinned SDK declarations say
+`void`. Successful deletion is removed from pending cleanup before validating
+the acknowledgment, preventing a second DELETE of an already-deleted resource.
+
+Failure diagnostics retain the operation (including first/next input-item page
+and cleanup), allowlisted service codes/parameter names, and a fixed set of
+recognized service-message hints. Original error messages, response IDs, model
+names, endpoint URLs, and credentials are not stored. A 404 alone cannot tell
+whether a route, response, or cursor was missing; a 400 alone cannot establish
+an SDK defect. Read the redacted failed-step details before drawing conclusions.
+
 Add `"responses"` to the Key Vault configuration's `suites`, add a
 `responses` deployment/model to both `azureDeployments` and `openaiModels`,
 and add, for example:

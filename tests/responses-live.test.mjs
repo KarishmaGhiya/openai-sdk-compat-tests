@@ -23,7 +23,7 @@ const config = () => ({
   responses: { mode: 'selected', azureApiMode: 'v1', features: ['method:create'] },
 });
 
-function liveTransport(SDK, route, { cleanupFails = false, badMethod } = {}) {
+function liveTransport(SDK, route, { cleanupFails = false, badMethod, deleteStatus = 200, deletionBody } = {}) {
   const deleted = new Set();
   let serial = 0;
   return responsesTransport(SDK, route, (request) => {
@@ -31,7 +31,9 @@ function liveTransport(SDK, route, { cleanupFails = false, badMethod } = {}) {
     if (request.method === 'DELETE') {
       if (cleanupFails) return { status: 503, body: { error: { message: 'SECRET-CLEANUP-ERROR' } } };
       deleted.add(path.split('/').at(-1));
-      return { status: 204 };
+      return deleteStatus === 204 ? { status: 204 } : {
+        body: deletionBody ?? { id: path.split('/').at(-1), object: 'response.deleted', deleted: true },
+      };
     }
     if (path.endsWith('/input_tokens')) return { body: { object: 'response.input_tokens', input_tokens: badMethod === 'method:inputTokens.count' ? 0 : 7 } };
     if (path.endsWith('/compact')) return { body: { object: 'response.compaction', output: badMethod === 'method:compact'
@@ -77,6 +79,15 @@ test('all-nine Responses workflow preset expands selection without changing conf
   }
   original.responses.azureApiMode = 'v1';
   assert.equal(JSON.stringify(original), snapshot);
+  const narrow = selectLiveMode(original, {
+    AZURE_COMPAT_MODE: 'responses-core',
+    RESPONSES_LIVE_FEATURES: 'method:delete, method:inputItems.list, method:inputTokens.count',
+  });
+  assert.deepEqual(narrow.responses.features, ['method:delete', 'method:inputItems.list', 'method:inputTokens.count']);
+  assert.deepEqual(planResponsesLive(narrow).missing, []);
+  assert.throws(() => planResponsesLive(selectLiveMode(original, {
+    AZURE_COMPAT_MODE: 'responses-core', RESPONSES_LIVE_FEATURES: 'method:unknown',
+  })));
 });
 
 test('all-nine preset executes 36 actual SDK scenarios and reports 9/9 methods without claiming full feature coverage', async () => {
@@ -135,6 +146,76 @@ for (const [name, SDK] of [['baseline', Baseline], ['current', Current]]) {
 test('a successful Responses assertion cannot hide failed cleanup', async () => {
   const { client } = liveTransport(Current, 'azure-v1', { cleanupFails: true });
   await assert.rejects(runResponsesBuiltin({ client, provider: 'azure' }, 'method:retrieve', config()), /cleanup failed/);
+});
+
+test('delete accepts documented JSON acknowledgments and empty 204 responses on both SDKs without retrying a deleted resource', async () => {
+  for (const SDK of [Baseline, Current]) {
+    for (const deleteStatus of [200, 204]) {
+      const { client, requests } = liveTransport(SDK, 'azure-v1', { deleteStatus });
+      await runResponsesBuiltin({ client, SDK, provider: 'azure' }, 'method:delete', config());
+      assert.equal(requests.filter((request) => request.method === 'DELETE').length, 1);
+      assert.equal(requests.at(-1).method, 'GET', 'Must verify the deleted response is unavailable');
+    }
+    for (const deletionBody of [
+      { id: 'wrong', object: 'response.deleted', deleted: true },
+      { id: 'resp_live_1', object: 'response.deleted', deleted: false },
+      { id: 'resp_live_1', object: 'unexpected', deleted: true },
+    ]) {
+      const { client, requests } = liveTransport(SDK, 'azure-v1', { deletionBody });
+      await assert.rejects(runResponsesBuiltin({ client, SDK, provider: 'azure' }, 'method:delete', config()),
+        (error) => error.name === 'AssertionError' && error.compatibilityOperation === 'responses.delete');
+      assert.equal(requests.filter((request) => request.method === 'DELETE').length, 1);
+    }
+  }
+});
+
+test('Responses diagnostics retain only known operations, codes, parameters, and message hints', async () => {
+  for (const [feature, status, message, code, param] of [
+    ['method:inputItems.list', 404, 'Unknown request URL: SECRET-URL', 'NotFound', 'SECRET-PARAM'],
+    ['method:inputTokens.count', 400, 'input_tokens is not supported for model SECRET-MODEL', 'OperationNotSupported', 'model'],
+  ]) {
+    const value = config();
+    value.responses.features = [feature];
+    const { client } = responsesTransport(Current, 'azure-v1', (request) => {
+      if (request.method === 'DELETE') return { status: 204 };
+      if (request.url.pathname.endsWith('/responses')) return { body: responseFixture() };
+      return { status, body: { error: { code, param, message } } };
+    });
+
+    test('Azure pagination failure diagnostics identify the second page and retain cleanup without leaking cursor or response IDs', async () => {
+      const value = config();
+      value.responses.features = ['method:inputItems.list'];
+      const { client, requests } = responsesTransport(Current, 'azure-v1', (request) => {
+        if (request.method === 'DELETE') return { status: 204 };
+        if (request.method === 'POST') return { body: responseFixture() };
+        if (request.url.searchParams.has('after')) return {
+          status: 404, body: { error: { code: 'NotFound', message: 'Response SECRET-RESPONSE could not be found at SECRET-ENDPOINT' } },
+        };
+        return { body: { object: 'list', data: [{ id: 'SECRET-CURSOR', type: 'message' }],
+          has_more: true, first_id: 'SECRET-CURSOR', last_id: 'SECRET-CURSOR' } };
+      });
+      const report = await runResponsesLiveMatrix(value, [{
+        client, SDK: Current, id: 'azure', provider: 'azure', supported: new Set(value.responses.features),
+      }]);
+      assert.equal(report.results[0].error.operation, 'responses.inputItems.list.nextPage');
+      assert.equal(report.results[0].error.status, 404);
+      assert.equal(requests.at(-1).method, 'DELETE');
+      assert.doesNotMatch(JSON.stringify(report), /SECRET-/);
+    });
+    const result = await runResponsesLiveMatrix(value, [{
+      client, SDK: Current, id: 'current-azure-v1', provider: 'azure', supported: new Set([feature]),
+    }]);
+    const row = result.results[0];
+    assert.equal(row.status, 'failed');
+    assert.equal(row.error.operation, feature.replace('method:', 'responses.'));
+    assert.equal(row.error.serviceCode, code);
+    assert.equal(row.error.parameter, param === 'model' ? 'model' : undefined);
+    assert.ok(row.error.serviceSignals.includes(status === 404 ? 'unknown-request-url' : 'unsupported'));
+    assert.doesNotMatch(JSON.stringify(result), /SECRET-/);
+    const summary = renderLiveSummary({ live: true, results: [{ ...row, suite: 'responses' }] });
+    assert.match(summary, /Where the Responses failures occurred/);
+    assert.doesNotMatch(summary, /SECRET-/);
+  }
 });
 
 test('full preflight lists missing fixture IDs and prevents every paid call, including other suites', async () => {
@@ -241,7 +322,10 @@ test('reviewed private scenarios require real feature evidence, run assertions, 
 
   const failed = await runResponsesLiveMatrix(config(), [{
     id: 'azure', provider: 'azure', supported: new Set(['method:create']),
-  }], async () => { throw Object.assign(new Error('SECRET-RAW-BODY'), { status: 403, name: 'SECRET-NAME' }); });
+  }], async () => { throw Object.assign(new Error('SECRET-RAW-BODY'), {
+    status: 403, name: 'SECRET-NAME', compatibilityOperation: 'SECRET-OPERATION',
+    error: { code: 'SECRET-CODE', param: 'SECRET-PARAMETER', message: 'SECRET-MESSAGE' },
+  }); });
   assert.equal(failed.results[0].error.status, 403);
   assert.ok(!JSON.stringify(failed).includes('SECRET'));
 });

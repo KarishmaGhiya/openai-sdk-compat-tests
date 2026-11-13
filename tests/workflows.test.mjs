@@ -49,6 +49,8 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.deepEqual(inputs.mode.options, ['configured', 'responses-core', 'azure-companion']);
   const live = job.steps.find((step) => step.run === 'npm run test:azure:keyvault');
   assert.equal(live.env.AZURE_COMPAT_MODE, '${{ inputs.mode }}');
+  assert.equal(live.env.RESPONSES_LIVE_FEATURES, '${{ inputs.responses_features }}');
+  assert.equal(inputs.responses_features.default, '');
   assert.equal(live.env.AZURE_COMPANION_FEATURES, '${{ inputs.companion_features }}');
   assert.equal(live.env.AZURE_COMPANION_CHAT_DEPLOYMENT, '${{ inputs.companion_chat_deployment }}');
 });
