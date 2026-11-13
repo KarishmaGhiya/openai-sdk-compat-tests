@@ -238,6 +238,41 @@ not proof that live service tests have run.
 
 ### Optional live Responses execution
 
+To extend the earlier three-method live run to all nine core methods, select
+**mode: `responses-core`** in the manual live workflow. This changes only the
+in-memory selection, without editing the Key Vault secret. It runs only
+Responses, preserving the configured `azureApiMode` (`v1`, `versioned`, or
+`both`), models, credentials, per-method overrides, and private fixtures.
+Both pinned SDK versions run against Azure and the OpenAI-hosted API: **36
+method-by-target outcomes** with one Azure route, or **54** with both routes.
+These are scenario counts, not HTTP request or inference counts: setup,
+pagination, verification, and cleanup make additional requests.
+
+The six additional methods are:
+
+| Method | Actual live assertion |
+|---|---|
+| `responses.retrieve()` | Stored response ID and output text survive retrieval; stored state is deleted afterward |
+| `responses.delete()` | Deletion succeeds and subsequent retrieval returns 404 |
+| `responses.cancel()` | A queued/in-progress background response is cancelled, the returned ID matches, and stored state is deleted |
+| `responses.compact()` | A compaction response contains an encrypted compaction item |
+| `responses.inputItems.list()` | A second page is fetched and its item ID differs; stored state is deleted |
+| `responses.inputTokens.count()` | The result has a positive integer input-token count |
+
+Cancellation requires a background-capable model and a still-running response;
+if it finishes before cancellation, the case fails rather than claiming that
+cancellation was tested. Compaction and token counting need provider/model/API
+support. Preserve dedicated per-provider `responses.cases[featureId].azure`
+and `.openai` overrides from your secret if these methods need different models
+or request bodies. Unsupported/rejected calls remain nonpassing findings,
+not automatic SDK defects, and are not silently skipped.
+
+The all-nine preset remains `mode: selected` in the Responses report:
+**9/9 core methods is not the full Responses feature matrix or all OpenAI APIs**.
+All nine must actually pass on every compared target before the summary reports
+9/9 verified; selecting the preset alone does not close live coverage gaps.
+The default workflow mode `configured` still uses your existing secret unchanged.
+
 Add `"responses"` to the Key Vault configuration's `suites`, add a
 `responses` deployment/model to both `azureDeployments` and `openaiModels`,
 and add, for example:

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import * as Baseline from 'openai';
 import * as Current from 'openai-current';
 import { readJSON } from '../lib/io.mjs';
-import { validateLiveConfig, validateLivePrerequisites, runLiveMatrix } from '../lib/azure-live.mjs';
+import { selectLiveMode, validateLiveConfig, validateLivePrerequisites, runLiveMatrix } from '../lib/azure-live.mjs';
 import {
-  makeResponsesLiveClients, planResponsesLive, prepareResponsesLive, responsesBuiltinIds,
+  makeResponsesLiveClients, planResponsesLive, prepareResponsesLive, responsesBuiltinIds, responsesFeatureIds,
   runResponsesBuiltin, runResponsesLiveMatrix,
 } from '../lib/responses-live.mjs';
 import { responseFixture, responseEvents, responsesTargets, responsesTransport } from '../lib/responses-contract.mjs';
@@ -13,6 +13,7 @@ import { main as liveMain } from '../scripts/azure-live.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { renderLiveSummary } from '../lib/compat-summary.mjs';
 
 const config = () => ({
   endpoint: 'https://fixture.openai.azure.com', apiVersion: '2025-04-01-preview',
@@ -22,7 +23,7 @@ const config = () => ({
   responses: { mode: 'selected', azureApiMode: 'v1', features: ['method:create'] },
 });
 
-function liveTransport(SDK, route, { cleanupFails = false } = {}) {
+function liveTransport(SDK, route, { cleanupFails = false, badMethod } = {}) {
   const deleted = new Set();
   let serial = 0;
   return responsesTransport(SDK, route, (request) => {
@@ -32,17 +33,20 @@ function liveTransport(SDK, route, { cleanupFails = false } = {}) {
       deleted.add(path.split('/').at(-1));
       return { status: 204 };
     }
-    if (path.endsWith('/input_tokens')) return { body: { object: 'response.input_tokens', input_tokens: 7 } };
-    if (path.endsWith('/compact')) return { body: { object: 'response.compaction', output: [{ type: 'compaction', id: 'compact_1', encrypted_content: 'offline' }] } };
+    if (path.endsWith('/input_tokens')) return { body: { object: 'response.input_tokens', input_tokens: badMethod === 'method:inputTokens.count' ? 0 : 7 } };
+    if (path.endsWith('/compact')) return { body: { object: 'response.compaction', output: badMethod === 'method:compact'
+      ? [{ type: 'message', content: [] }] : [{ type: 'compaction', id: 'compact_1', encrypted_content: 'offline' }] } };
     if (path.endsWith('/input_items')) {
       const next = request.url.searchParams.has('after');
-      const id = next ? 'input_2' : 'input_1';
+      const id = next && badMethod !== 'method:inputItems.list' ? 'input_2' : 'input_1';
       return { body: { object: 'list', data: [{ id, type: 'message', role: 'user', content: [] }], has_more: !next, first_id: id, last_id: id } };
     }
-    if (path.endsWith('/cancel')) return { body: responseFixture({ status: 'cancelled' }) };
-    if (request.method === 'GET') return deleted.has(path.split('/').at(-1))
+    if (path.endsWith('/cancel')) return { body: responseFixture({
+      id: badMethod === 'method:cancel' ? 'wrong-response' : path.split('/').at(-2), status: 'cancelled',
+    }) };
+    if (request.method === 'GET') return deleted.has(path.split('/').at(-1)) && badMethod !== 'method:delete'
       ? { status: 404, body: { error: { message: 'deleted' } } }
-      : { body: responseFixture({ id: path.split('/').at(-1) }) };
+      : { body: responseFixture({ id: badMethod === 'method:retrieve' ? 'wrong-response' : path.split('/').at(-1) }) };
     const body = request.body;
     const response = responseFixture({ id: `resp_live_${++serial}`, ...(body.background ? { status: 'in_progress' } : {}) });
     if (body.text?.format && body.text.format.type !== 'text') response.output[0].content[0].text = '{"value":7}';
@@ -53,6 +57,52 @@ function liveTransport(SDK, route, { cleanupFails = false } = {}) {
     return body.stream ? { events: responseEvents(response) } : { body: response };
   });
 }
+
+test('all-nine Responses workflow preset expands selection without changing configured routes, models, or method overrides', async () => {
+  const original = config();
+  original.responses.cases = { 'method:compact': { azure: { ready: true, builtin: true, model: 'dedicated-compaction' } } };
+  const snapshot = JSON.stringify(original);
+  for (const azureApiMode of ['v1', 'versioned', 'both']) {
+    original.responses.azureApiMode = azureApiMode;
+    const selected = selectLiveMode(original, { AZURE_COMPAT_MODE: 'responses-core' });
+    assert.deepEqual(selected.suites, ['responses']);
+    assert.deepEqual([...selected.responses.features].sort(), responsesFeatureIds.filter((id) => id.startsWith('method:')).sort());
+    assert.equal(selected.responses.mode, 'selected');
+    assert.equal(selected.responses.azureApiMode, azureApiMode);
+    assert.equal(selected.responses.cases, original.responses.cases);
+    assert.equal(selected.openaiApiKey, original.openaiApiKey);
+    assert.equal(selected.azureDeployments, original.azureDeployments);
+    assert.deepEqual(planResponsesLive(selected).missing, []);
+    assert.equal((await makeResponsesLiveClients(selected)).length, azureApiMode === 'both' ? 6 : 4);
+  }
+  original.responses.azureApiMode = 'v1';
+  assert.equal(JSON.stringify(original), snapshot);
+});
+
+test('all-nine preset executes 36 actual SDK scenarios and reports 9/9 methods without claiming full feature coverage', async () => {
+  const selected = selectLiveMode(config(), { AZURE_COMPAT_MODE: 'responses-core' });
+  const targets = await makeResponsesLiveClients(selected);
+  for (const target of targets) {
+    const route = target.provider === 'openai' ? 'openai' : 'azure-v1';
+    const transport = liveTransport(target.SDK, route);
+    target.client = transport.client;
+    target.requests = transport.requests;
+  }
+  const result = await runResponsesLiveMatrix(selected, targets);
+  assert.equal(result.results.length, 36);
+  assert.ok(result.results.every((row) => row.status === 'passed'), JSON.stringify(result.results));
+  assert.equal(result.complete, false);
+  assert.ok(targets.every((target) => target.requests.length === 18));
+  const summary = renderLiveSummary({
+    live: true, responses: { mode: result.mode, complete: result.complete }, results: result.results,
+  });
+  assert.match(summary, /9 of 9 core methods passed/);
+  assert.match(summary, /complete: false means partial coverage, not a failed test/);
+  for (const assertion of ['subsequent retrieve returns HTTP 404', 'cancels the same response ID',
+    'requires an encrypted compaction item', 'second input-item page', 'positive integer token count']) {
+    assert.ok(summary.includes(assertion), assertion);
+  }
+});
 
 for (const [name, SDK] of [['baseline', Baseline], ['current', Current]]) {
   for (const route of responsesTargets) {
@@ -69,6 +119,17 @@ for (const [name, SDK] of [['baseline', Baseline], ['current', Current]]) {
       });
     });
   }
+  test(`${name}: all six added live selections reject incorrect API behavior and clean up stored state`, async (t) => {
+    for (const id of ['method:retrieve', 'method:delete', 'method:cancel', 'method:compact', 'method:inputItems.list', 'method:inputTokens.count']) {
+      await t.test(id, async () => {
+        const { client, requests } = liveTransport(SDK, 'azure-v1', { badMethod: id });
+        await assert.rejects(runResponsesBuiltin({ client, SDK, provider: 'azure' }, id, config()), { name: 'AssertionError' });
+        if (['method:retrieve', 'method:cancel', 'method:inputItems.list'].includes(id)) {
+          assert.equal(requests.at(-1).method, 'DELETE');
+        }
+      });
+    }
+  });
 }
 
 test('a successful Responses assertion cannot hide failed cleanup', async () => {

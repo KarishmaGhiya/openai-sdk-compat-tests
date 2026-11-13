@@ -9,9 +9,9 @@ on:
         required: true
         default: false
       mode:
-        description: Use the configured suites, or run only stable Azure companion scenarios
+        description: Run configured suites, all nine core Responses methods, or stable Azure companion scenarios
         type: choice
-        options: [configured, azure-companion]
+        options: [configured, responses-core, azure-companion]
         default: configured
       companion_features:
         description: Companion mode only; comma-separated chat, chat-stream, grounding, grounding-stream, completions, images, upload-parts
