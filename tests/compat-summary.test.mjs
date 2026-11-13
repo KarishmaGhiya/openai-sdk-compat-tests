@@ -78,6 +78,12 @@ test('live summary explains all twelve passes as partial coverage and identifies
   assert.match(summary, /not separate @azure\/openai and OpenAI runtime implementations/);
   assert.match(summary, /legacy @azure\/openai client has no Responses resource/);
   assert.match(summary, /does not compare answer quality, latency, or cost/);
+  assert.match(summary, /3 of 9 core methods passed/);
+  for (const method of ['retrieve', 'delete', 'cancel', 'compact', 'inputItems.list', 'inputTokens.count']) {
+    assert.ok(summary.includes(`responses.${method}()`));
+  }
+  assert.match(summary, /Not selected; no live evidence in this run/);
+  assert.match(summary, /test-coverage gaps, not demonstrated SDK defects/);
 });
 
 test('blocked, unsupported, absent SDK, and failed outcomes are never summarized as live passes', () => {
