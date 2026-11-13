@@ -1,18 +1,20 @@
-import { makeLiveClients, runLiveMatrix, validateLivePrerequisites } from '../lib/azure-live.mjs';
+import { makeLiveClients, runLiveMatrix, selectLiveMode, validateLivePrerequisites } from '../lib/azure-live.mjs';
 import { writeJSON } from '../lib/io.mjs';
 import { pathToFileURL } from 'node:url';
 import { makeResponsesLiveClients, runResponsesLiveMatrix } from '../lib/responses-live.mjs';
 import { appendFile } from 'node:fs/promises';
 import { renderLiveSummary } from '../lib/compat-summary.mjs';
+import { runCompanionLiveMatrix } from '../lib/azure-companion-live.mjs';
 
 export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON) {
   if (process.env.ALLOW_LIVE_API !== 'true') throw new Error('Set ALLOW_LIVE_API=true to authorize paid live tests.');
   let config;
   try { config = JSON.parse(raw); } catch { throw new Error('Missing/invalid AZURE_COMPAT_CONFIG_JSON; value redacted.'); }
+  config = selectLiveMode(config);
   const responsesPlan = await validateLivePrerequisites(config);
   const versions = {};
   const { readJSON } = await import('../lib/io.mjs');
-  for (const name of ['openai', 'openai-current', 'azure-openai-legacy']) {
+  for (const name of ['openai', 'openai-current', '@azure/openai', 'azure-openai-legacy']) {
     versions[name] = (await readJSON(`node_modules/${name}/package.json`)).version;
   }
   const blocked = responsesPlan?.missing.length > 0;
@@ -22,10 +24,13 @@ export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON) {
     responses = await runResponsesLiveMatrix(config, blocked ? [] : await makeResponsesLiveClients(config));
     results.push(...responses.results.map((entry) => ({ ...entry, suite: 'responses' })));
   }
+  const companion = !blocked && config.suites.includes('azure-companion') ? await runCompanionLiveMatrix(config) : undefined;
+  if (companion) results.push(...companion.results);
   const report = {
     versions, suites: config.suites, live: !blocked,
     scope: 'Selected suites only; not exhaustive API or semantic model equivalence.',
-    ...(responses ? { responses: { mode: responses.mode, complete: responses.complete }, blockedBeforePaidCalls: blocked } : {}), results,
+    ...(responses ? { responses: { mode: responses.mode, complete: responses.complete }, blockedBeforePaidCalls: blocked } : {}),
+    ...(companion ? { companion: { ...companion, results: undefined } } : {}), results,
   };
   await writeJSON('reports/azure-live.json', report);
   const summary = renderLiveSummary(report);

@@ -54,7 +54,8 @@ For these pinned versions:
 
 | Difference | Result | Interpretation |
 |---|---|---|
-| Azure `data_sources`, prompt/choice filter results, citation context, image filter results, and `azure_block_id` | 13 fields absent natively; all 13 type-check with the Azure companion | Type-extension dependency, not lost runtime data |
+| Azure `data_sources`, prompt/choice filter results, citation context, image filter results, and `azure_block_id` | 13 root declaration fields absent natively; all 13 declarations patched, but only 12 actual client call sites type-check with the companion | Declaration coverage is not the same as usable client-call typing |
+| `uploads.parts.create().azure_block_id` | The method result remains untyped with the companion, despite the augmented root `UploadPart` export | Actual call-site typing gap in both pinned SDKs; runtime preservation must be checked separately |
 | Legacy `azureExtensionOptions.enhancements` | Neither OpenAI version nor the stable companion types the migrated `enhancements` request property | Verified request-type gap; JSON pass-through works, but current service support is not established |
 | `getChatCompletions`, `getEmbeddings`, etc. | All eight have transport-tested modern equivalents | Source migration required; no missing endpoint found within these eight |
 | camelCase options/results | Modern SDK uses server snake_case | Source/schema migration, not lost functionality |
@@ -108,6 +109,69 @@ Raw prompts, generated text, response bodies, endpoint URLs, and secret values
 are not uploaded. Failed auth, absent metadata, or assertion errors fail the run.
 This is selected live coverage, not exhaustive API parity.
 
+### Stable Azure companion live comparison
+
+Select workflow **mode: `azure-companion`** to run only the stable
+`@azure/openai` scenarios against Azure, without changing your Key Vault JSON.
+The default `configured` mode preserves the existing suites, including a
+Responses-only secret. Companion mode selects `chat,chat-stream` by default.
+Set `companion_chat_deployment` to a deployment supporting Chat Completions if
+the secret has no `azureDeployments.chat`; Responses support alone does not
+establish Chat Completions support. This makes **four Azure requests**: two
+scenarios on each pinned OpenAI SDK. No OpenAI-hosted or legacy client calls
+are made in companion-only mode, and no OpenAI key is required.
+
+Alternatively, include `"azure-companion"` in the secret's `suites` and add:
+
+```json
+{
+  "azureDeployments": { "chat": "YOUR-CHAT-DEPLOYMENT" },
+  "azureCompanion": {
+    "features": ["chat", "chat-stream"],
+    "tokenParameter": "max_completion_tokens",
+    "maxTokens": 128
+  }
+}
+```
+
+Keep the existing Azure endpoint, API version, and key/Entra configuration.
+Use `max_tokens` instead for deployments that require it. This suite uses
+Azure versioned routes. Model names, keys, data sources, and grounded questions
+remain in memory; the workflow override does not write the secret.
+
+| Selectable companion feature | Fields/behavior checked | Additional requirements |
+|---|---|---|
+| `chat`, `chat-stream` | Prompt/choice content-filter metadata, including SSE chunks | Chat deployment |
+| `grounding`, `grounding-stream` | `data_sources` serialization and message/delta citation context | `dataSources` with a real Azure Search endpoint, index, authentication, and `azureCompanion.groundingPrompt` that can be answered from that index |
+| `completions` | Text-completion prompt/choice filters | `azureDeployments.completions` and a compatible legacy text-completion model |
+| `images` | Image prompt/content-filter fields | `azureDeployments.images` and supported image generation |
+| `upload-parts` | `azure_block_id` on an uploaded part | Uploads API support; uploads a tiny synthetic file, cancels the pending upload, and verifies cancellation without completing a persistent File |
+
+These seven scenarios cover all **13 declared companion fields**, not every
+Azure feature or SDK API. Selecting all seven produces 14 scenario results
+and 18 HTTP requests, including upload creation, part upload, and cancellation.
+Missing deployment/source prerequisites block all paid suites before requests.
+Azure service rejection is a nonpassing result, not an automatic SDK defect.
+No new deployments, Search indexes, or other Azure resources are provisioned.
+
+`compat/azure-companion-scenarios.mts` genuinely imports the stable companion,
+is type-checked against each pinned SDK, and is transpiled before execution.
+Independent compiler probes compare native versus augmented typing at **actual
+request/response call sites**, not just root exports. The upload scenario uses
+reflective access for the known remaining method-result typing gap and reports
+that limitation rather than hiding it with a type assertion.
+
+For each selected Azure field, a fetch wrapper compares original request/response
+JSON or raw SSE metadata with the values consumed by the typed scenario.
+The readable summary separates typing gaps, fields preserved by the SDK,
+wire-versus-SDK mismatches, fields Azure did not emit, and fields not selected.
+Absent service metadata is **unverified**, never a pass or evidence of SDK
+data loss. Failed functional assertions (including missing grounding citations)
+do not produce misleading runtime-loss findings. Unverified or failed selected
+cases make the run nonpassing. Successful selected cases remain partial coverage.
+Only field IDs, observed counts, typing flags, safe assertion categories,
+HTTP statuses, and outcomes are persisted; raw values are never uploaded.
+
 ## Responses feature matrix and gap reporting
 
 ```powershell
@@ -132,8 +196,10 @@ Schema changes fail review coverage even when an existing sample still compiles.
 
 `reports/responses-compatibility.json` and the GitHub job summary explicitly show:
 
-- The 13 native Azure type-extension gaps per pinned OpenAI version and whether
-  importing the companion resolves each one; legacy `enhancements` is separate.
+- The 13 native Azure declaration gaps per pinned OpenAI version, whether
+  importing the companion patches each declaration, and actual client-call
+  typing (including the unresolved upload method result); legacy `enhancements`
+  is separate.
 - **Zero Responses extensions from this stable Azure companion**. The legacy
   standalone Azure client has no Responses resource; it is not an equivalent
   Responses implementation and is not counted as a passing target.

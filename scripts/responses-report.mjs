@@ -61,4 +61,5 @@ const summary = renderResponsesSummary(report);
 console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
 if (packages.some((entry) => entry.responses.missingContracts.length || entry.responses.unreviewedSchemas.length || entry.responses.unreviewedRemovals.length ||
-  entry.azureNativeTypeGaps.some((field) => !field.withAzureTypes))) process.exitCode = 1;
+  entry.azureNativeTypeGaps.some((field) => !field.withAzureTypes ||
+    (!field.callSite.withAzureTypes && !field.callSite.reviewedGap)))) process.exitCode = 1;
