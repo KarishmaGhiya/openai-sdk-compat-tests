@@ -37,6 +37,14 @@ jobs:
       - run: npm run test:azure
       - run: npm run test:responses
       - run: npm run responses:report
+      - name: Save offline SDK compatibility evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: sdk-compatibility-details
+          path: reports/responses-compatibility.json
+          if-no-files-found: ignore
+          retention-days: 7
       - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}

@@ -10,6 +10,9 @@ import {
 } from '../lib/responses-live.mjs';
 import { responseFixture, responseEvents, responsesTargets, responsesTransport } from '../lib/responses-contract.mjs';
 import { main as liveMain } from '../scripts/azure-live.mjs';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const config = () => ({
   endpoint: 'https://fixture.openai.azure.com', apiVersion: '2025-04-01-preview',
@@ -92,7 +95,12 @@ test('top-level live entry point persists a redacted preflight report without ca
   value.azureDeployments.chat = 'test-chat';
   value.openaiModels.chat = 'test-chat';
   value.responses = { mode: 'full', azureApiMode: 'v1' };
-  const before = { fetch: globalThis.fetch, allow: process.env.ALLOW_LIVE_API, exitCode: process.exitCode, log: console.log };
+  const before = {
+    fetch: globalThis.fetch, allow: process.env.ALLOW_LIVE_API, exitCode: process.exitCode,
+    log: console.log, summary: process.env.GITHUB_STEP_SUMMARY,
+  };
+  const directory = await mkdtemp(join(tmpdir(), 'compat-summary-'));
+  process.env.GITHUB_STEP_SUMMARY = join(directory, 'summary.md');
   let requests = 0;
   globalThis.fetch = () => { requests++; throw new Error('Must not contact inference'); };
   console.log = () => {};
@@ -106,12 +114,19 @@ test('top-level live entry point persists a redacted preflight report without ca
     assert.equal(report.responses.complete, false);
     assert.equal(process.exitCode, 1);
     assert.ok(!JSON.stringify(report).includes(value.azureApiKey));
+    const summary = await readFile(process.env.GITHUB_STEP_SUMMARY, 'utf8');
+    assert.match(summary, /fixture preflight blocked all paid API calls/);
+    assert.match(summary, /No paid API calls: blocked before execution/);
+    assert.ok(!summary.includes(value.azureApiKey));
   } finally {
     globalThis.fetch = before.fetch;
     console.log = before.log;
     process.exitCode = before.exitCode;
     if (before.allow === undefined) delete process.env.ALLOW_LIVE_API;
     else process.env.ALLOW_LIVE_API = before.allow;
+    if (before.summary === undefined) delete process.env.GITHUB_STEP_SUMMARY;
+    else process.env.GITHUB_STEP_SUMMARY = before.summary;
+    await rm(directory, { recursive: true });
   }
 });
 
