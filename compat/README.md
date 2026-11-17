@@ -225,9 +225,11 @@ nonpassing statuses, and states what was not measured.
 In `responses-core` mode, the job summary contains **only the live result
 matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
-implementation at the workflow commit; failed outcomes link to the exact log line of
-that case's result in the live step (passed cells are not linked). Because line numbers are final only after the
-live job ends, a follow-up `summary` job (read-only `actions: read`, no secrets)
+implementation at the workflow commit. Failed and warning cells are split by a
+divider: the top shows the result (for failures, linked to the exact log line of
+that case's result in the live step) and the bottom shows the category, linked to
+its filed issue when there is one (passed cells are not linked). Because line numbers are final only after the
+live job ends, a follow-up `summary` job (read-only `actions: read`, no live API secrets)
 reads the finished job log and writes the table; if that lookup fails, links fall
 back to the live step and then to the run page. Logs group the safe diagnostics by SDK/provider
 and test. Each failure is labelled by comparing the same test across SDK versions
@@ -262,7 +264,7 @@ identifier-like words are replaced with `{value}`/`{url}`. Recognized messages a
 labelled with a confirmed cause, for example **Azure OpenAI API issue: model not
 supported for this operation**. Listing input items retries a stored-response 404
 for up to 30 seconds. If the items then appear, the case is a yellow **Passed with
-warning; Azure OpenAI API issue: read-after-write delay** with the delay. If they never appear, it
+warning** with **Azure OpenAI API issue: read-after-write delay** below it, with the delay. If they never appear, it
 fails as **Azure OpenAI API issue: stored response not found after retries**.
 
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and

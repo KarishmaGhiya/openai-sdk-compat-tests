@@ -247,7 +247,7 @@ test('a stored response that becomes listable after 404s passes with a read-afte
   assert.equal(row.warning.requestId, '0eeae89f-638d-4ced-b6ed-642e8f72bfef');
   assert.equal(requests.at(-1).method, 'DELETE');
   const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [{ ...row, suite: 'responses' }] });
-  assert.match(summary, /\u{1f7e1} Passed with warning; Azure OpenAI API issue: read-after-write delay/u);
+  assert.match(summary, /\u{1f7e1} Passed with warning<hr>Azure OpenAI API issue: read-after-write delay/u);
   assert.doesNotMatch(summary, /\u{1f7e2}|\u{1f534}/u);
   assert.doesNotMatch(JSON.stringify(result) + summary, /SECRET/);
 });
@@ -276,8 +276,8 @@ test('persistent stored-response 404s and unsupported-model 400s report exact re
   const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core',
     links: { logs: 'https://github.com/o/r/actions/runs/1/job/2' },
     results: [missing, unsupported].map((row) => ({ ...row, suite: 'responses' })) });
-  assert.match(summary, /\u{1f534} Failed \(HTTP 404\); Azure OpenAI API issue: stored response not found after retries/u);
-  assert.match(summary, /\u{1f534} Failed \(HTTP 400\); Azure OpenAI API issue: model not supported for this operation/u);
+  assert.match(summary, /\u{1f534} Failed \(HTTP 404\)\]\([^ ]+ "[^"]*"\)<hr>Azure OpenAI API issue: stored response not found after retries/u);
+  assert.match(summary, /\u{1f534} Failed \(HTTP 400\)\]\([^ ]+ "[^"]*"\)<hr>Azure OpenAI API issue: model not supported for this operation/u);
   assert.match(summary, /Service message: This model is not supported by Responses API\. Request ID: c57f9837-a864-4f68-8b42-3c1a47d5de7f/);
   assert.doesNotMatch(JSON.stringify([missing, unsupported]) + summary, /SECRET|resp_/);
 });

@@ -28,7 +28,8 @@ test('Responses-core renders only a linked colored matrix with evidence-qualifie
   assert.ok(summary.includes(`[Count input tokens](${test})`));
   assert.ok(summary.includes('| \u{1f7e2} Passed |'), 'passed cells are not linked');
   assert.ok(!summary.includes(`[\u{1f7e2} Passed]`));
-  assert.ok(summary.includes(`[\u{1f534} Failed (HTTP 400); API rejection; cause unconfirmed](${logs}`));
+  assert.ok(summary.includes(`[\u{1f534} Failed (HTTP 400)](${logs}`), 'result text links to the log line');
+  assert.match(summary, /\]\([^ ]+ "[^"]*"\)<hr>API rejection; cause unconfirmed \|/, 'category sits below a divider, unlinked without an issue');
   assert.match(summary, /HTTP 404.*Lookup returned not found/);
   assert.match(summary, /SDK surface gap/);
   assert.match(summary, /Contract mismatch; spec\/SDK\/API unconfirmed/);
@@ -264,7 +265,7 @@ test('failed results are attributed to the OpenAI SDK, Azure OpenAI API, or Open
   assert.equal(category([row('baseline-azure-v1', 'failed', http400)]), 'API rejection; cause unconfirmed');
   const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [
     row('baseline-azure-v1', 'failed', http400), row('baseline-openai', 'passed')] });
-  assert.match(summary, /Failed \(HTTP 400\); Azure OpenAI API issue: fails on Azure OpenAI but passes on OpenAI-hosted API/);
+  assert.match(summary, /Failed \(HTTP 400\)<hr>Azure OpenAI API issue: fails on Azure OpenAI but passes on OpenAI-hosted API/);
   assert.match(renderResponsesCaseLog(row('baseline-azure-v1', 'failed', http400), [row('baseline-openai', 'passed')]),
     /Category: Azure OpenAI API issue/);
 });
@@ -319,7 +320,7 @@ test('categorized failures file one issue per fingerprint, reuse existing issues
   assert.doesNotMatch(comments[0].body.body, /baseline SDK 7\.3\.0/);
 
   const summary = renderLiveSummary({ ...report, links: { ...report.links, issues: links } });
-  assert.match(summary, /🔴 Failed \(HTTP 400\); \[Azure OpenAI API issue: model not supported for this operation\]\(https:\/\/github\.com\/KarishmaGhiya\/azure-rest-api-specs\/issues\/7\)/);
+  assert.match(summary, /🔴 Failed \(HTTP 400\)<hr>\[Azure OpenAI API issue: model not supported for this operation\]\(https:\/\/github\.com\/KarishmaGhiya\/azure-rest-api-specs\/issues\/7\)/);
 });
 
 test('the issue-filing GitHub App key is exchanged for a token limited to the issue repositories and Issues: write', async () => {
