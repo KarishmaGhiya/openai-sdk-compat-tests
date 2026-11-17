@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import YAML from 'yaml';
 import { root } from '../lib/io.mjs';
+import { liveStepName } from '../scripts/responses-summary.mjs';
 
 for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml']) {
   test(`${name} is valid GitHub Actions YAML with resolvable job prerequisites and pinned actions`, async () => {
@@ -61,6 +62,15 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.match(logs.run, /RESPONSES_LIVE_LOG_URL=/);
   const offlineReport = job.steps.find((step) => step.run === 'npm run responses:report');
   assert.equal(offlineReport.env.AZURE_COMPAT_MODE, '${{ inputs.mode }}');
+  assert.equal(live.env.COMPAT_SUMMARY_DEFERRED, "${{ inputs.mode == 'responses-core' }}");
+  const summary = workflow.jobs.summary;
+  assert.equal(summary.needs, 'live');
+  assert.match(summary.if, /needs\.live\.result != 'skipped'/);
+  assert.match(summary.if, /inputs\.mode == 'responses-core'/);
+  assert.deepEqual(summary.permissions, { contents: 'read', actions: 'read' });
+  assert.equal(summary.environment, undefined, 'summary job must not receive live secrets');
+  assert.equal(job.steps.find((step) => step.name === liveStepName)?.run, 'npm run test:azure:keyvault');
+  assert.ok(summary.steps.some((step) => step.run === 'node scripts/responses-summary.mjs'));
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

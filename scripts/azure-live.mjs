@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { makeResponsesLiveClients, runResponsesLiveMatrix } from '../lib/responses-live.mjs';
 import { appendFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { renderLiveSummary, renderResponsesCaseLog } from '../lib/compat-summary.mjs';
+import { caseLogMarker, renderLiveSummary, renderResponsesCaseLog } from '../lib/compat-summary.mjs';
 import { CompanionPrerequisiteError, runCompanionLiveMatrix } from '../lib/azure-companion-live.mjs';
 
 export async function writeLiveReport(report, reportFile = 'reports/azure-live.json') {
@@ -28,16 +28,19 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
       };
     }
     for (const row of report.results) {
-      const log = renderResponsesCaseLog(row);
-      console.log(`::group::${log.split('\n')[0]}`);
-      console.log(log);
+      const [title, ...details] = renderResponsesCaseLog(row).split('\n');
+      console.log(`::group::${title}`);
+      console.log(`${caseLogMarker(row)}: ${title}`);
+      console.log(details.join('\n'));
       console.log('::endgroup::');
     }
   }
   await writeJSON(reportFile, report);
   const summary = renderLiveSummary(report);
   console.log(summary);
-  if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
+  // In responses-core mode a follow-up job writes the summary once this job's log line numbers are final.
+  const deferred = report.summaryMode === 'responses-core' && process.env.COMPAT_SUMMARY_DEFERRED === 'true';
+  if (process.env.GITHUB_STEP_SUMMARY && !deferred) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
   for (const entry of report.results) console.log(`${entry.status === 'passed' ? 'PASS' : 'FAIL'} ${entry.client ?? entry.provider} ${entry.feature ?? entry.suite} (${entry.status})`);
   if (report.blockedBeforePaidCalls || report.results.some((entry) => entry.status !== 'passed')) process.exitCode = 1;
 }
