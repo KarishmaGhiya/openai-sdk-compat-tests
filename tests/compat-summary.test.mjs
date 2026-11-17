@@ -321,3 +321,26 @@ test('categorized failures file one issue per fingerprint, reuse existing issues
   const summary = renderLiveSummary({ ...report, links: { ...report.links, issues: links } });
   assert.match(summary, /🔴 Failed \(HTTP 400\); \[Azure OpenAI API issue: model not supported for this operation\]\(https:\/\/github\.com\/KarishmaGhiya\/azure-rest-api-specs\/issues\/7\)/);
 });
+
+test('the issue-filing GitHub App key is exchanged for a token limited to the issue repositories and Issues: write', async () => {
+  const { appInstallationToken } = await import('../scripts/failure-issues.mjs');
+  const { generateKeyPairSync, createVerify } = await import('node:crypto');
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    return { ok: true, status: 200, json: async () => (url.endsWith('/installation') ? { id: 42 } : { token: 'ghs_x' }) };
+  };
+  const token = await appInstallationToken({ clientId: 'Iv1.abc', privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    repos: { openapi: 'o/spec', sdk: 'o/node', azure: 'o/azure' }, fetchImpl, now: 1_000_000_000 });
+  assert.equal(token, 'ghs_x');
+  const jwt = calls[0].init.headers.authorization.replace('Bearer ', '');
+  const [header, payload, signature] = jwt.split('.');
+  assert.ok(createVerify('RSA-SHA256').update(`${header}.${payload}`).verify(publicKey, signature, 'base64url'));
+  assert.deepEqual(JSON.parse(Buffer.from(payload, 'base64url')), { iat: 999_940, exp: 1_000_480, iss: 'Iv1.abc' });
+  assert.equal(calls[0].url, 'https://api.github.com/repos/o/spec/installation');
+  assert.equal(calls[1].url, 'https://api.github.com/app/installations/42/access_tokens');
+  assert.deepEqual(JSON.parse(calls[1].init.body), { repositories: ['spec', 'node', 'azure'], permissions: { issues: 'write' } });
+  await assert.rejects(appInstallationToken({ clientId: 'x', privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+    repos: { openapi: 'a/x', sdk: 'b/y', azure: 'a/z' }, fetchImpl }), /share one owner/);
+});

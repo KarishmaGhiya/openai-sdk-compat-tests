@@ -1,4 +1,38 @@
+import { createSign } from 'node:crypto';
 import { responsesIssueFindings } from '../lib/compat-summary.mjs';
+
+const base64url = (value) => Buffer.from(value).toString('base64url');
+
+// Exchanges the GitHub App private key for a one-hour installation token restricted to the issue repositories and Issues: write.
+export async function appInstallationToken({ clientId, privateKey, repos, fetchImpl = fetch, now = Date.now() }) {
+  const iat = Math.floor(now / 1000) - 60;
+  const unsigned = `${base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${base64url(JSON.stringify({ iat, exp: iat + 540, iss: clientId }))}`;
+  const jwt = `${unsigned}.${createSign('RSA-SHA256').update(unsigned).sign(privateKey, 'base64url')}`;
+  const call = async (method, path, body) => {
+    const response = await fetchImpl(`https://api.github.com/${path}`, {
+      method,
+      headers: { authorization: `Bearer ${jwt}`, accept: 'application/vnd.github+json', 'x-github-api-version': '2022-11-28',
+        ...(body ? { 'content-type': 'application/json' } : {}) },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+    if (!response.ok) throw new Error(`GitHub App ${method} ${path.replace(/\d+/g, '{id}')} failed with HTTP ${response.status}`);
+    return response.json();
+  };
+  const targets = [...new Set(Object.values(repos))];
+  const owners = new Set(targets.map((repo) => repo.split('/')[0]));
+  if (owners.size !== 1) throw new Error('Issue repositories must share one owner and App installation');
+  const installation = await call('GET', `repos/${targets[0]}/installation`);
+  const { token } = await call('POST', `app/installations/${installation.id}/access_tokens`, {
+    repositories: targets.map((repo) => repo.split('/')[1]), permissions: { issues: 'write' },
+  });
+  return token;
+}
+
+export async function revokeInstallationToken(token, fetchImpl = fetch) {
+  await fetchImpl('https://api.github.com/installation/token', {
+    method: 'DELETE', headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' },
+  }).catch(() => {});
+}
 
 export const issueLabel = 'sdk-compat';
 export const defaultIssueRepos = {

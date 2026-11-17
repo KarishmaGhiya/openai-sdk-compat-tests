@@ -238,15 +238,20 @@ issue** when the OpenAI-hosted API fails but Azure passes, or every compared API
 and SDK version fails the contract. Credential (401/403), quota (429), and
 deployment errors are labelled as configuration/quota issues, and failures without
 enough peers to compare stay "cause unconfirmed" rather than guessed.
-The summary job files each labelled failure or warning as an issue (label sdk-compat)
+The summary job files each labelled failure or warning as an issue (label `sdk-compat`)
 in KarishmaGhiya/openai-openapi (spec), openai-node (SDK), or azure-rest-api-specs
 (Azure), and links the category text to it. A hidden fingerprint (category type,
 test, provider, failed step, cause) finds an existing open or closed issue first;
 it is reused (reopened if closed) and only gets a comment when the run adds new
-evidence (another SDK/provider, status, or service message). Filing uses
-COMPAT_ISSUES_TOKEN from the compat-issues environment (main only), a
-fine-grained PAT limited to Issues read/write on those repositories; without it
-the table renders without issue links. Missing fixtures
+evidence (another SDK/provider, status, or service message). Filing uses a GitHub
+App installed only on those repositories with Issues read/write. The
+`compat-issues` environment (main only) signs in through OIDC as the
+`id-compat-issues` managed identity, whose only Key Vault access is the App's
+private key secret. The key is read into memory, exchanged for a one-hour token
+limited to those repositories and Issues: write, and the token is revoked after
+filing. No GitHub-stored secret is used; if the App is not configured
+(`ISSUES_APP_CLIENT_ID` environment variable), the table renders without issue
+links. Missing fixtures
 and unexecuted cases remain nonpassing and uncolored. Offline details remain in
 the artifact and logs instead of adding prose to this mode's summary.
 
