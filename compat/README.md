@@ -225,8 +225,11 @@ nonpassing statuses, and states what was not measured.
 In `responses-core` mode, the job summary contains **only the live result
 matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
-implementation at the workflow commit; outcomes link to the live step logs
-(the run page is the fallback). Logs group the safe diagnostics by SDK/provider
+implementation at the workflow commit; failed outcomes link to the exact log line of
+that case's result in the live step (passed cells are not linked). Because line numbers are final only after the
+live job ends, a follow-up `summary` job (read-only `actions: read`, no secrets)
+reads the finished job log and writes the table; if that lookup fails, links fall
+back to the live step and then to the run page. Logs group the safe diagnostics by SDK/provider
 and test. HTTP rejections identify an API rejection, not a proven SDK/spec bug;
 assertion mismatches leave spec/SDK/API attribution unconfirmed. Missing fixtures
 and unexecuted cases remain nonpassing and uncolored. Offline details remain in

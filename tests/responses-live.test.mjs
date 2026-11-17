@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { renderLiveSummary } from '../lib/compat-summary.mjs';
 import { sanitizeServiceMessage } from '../lib/service-diagnostics.mjs';
+import { caseLineLinks, liveJobName, liveStepName, main as summaryMain } from '../scripts/responses-summary.mjs';
 
 const config = () => ({
   endpoint: 'https://fixture.openai.azure.com', apiVersion: '2025-04-01-preview',
@@ -355,6 +356,48 @@ test('Responses-only selection does not fall through to legacy audio or pretend 
   assert.ok(targets.some((target) => target.id === 'baseline-azure-v1'));
 });
 
+test('the follow-up summary links each case to its exact outcome line in the finished live step log', async () => {
+  const rows = [
+    { suite: 'responses', feature: 'method:inputTokens.count', provider: 'azure', client: 'baseline-azure-v1', version: '7.3.0',
+      status: 'failed', error: { status: 400, knownCause: 'model-unsupported-for-operation' } },
+    { suite: 'responses', feature: 'method:create', provider: 'openai', client: 'current-openai', version: '7.45.1', status: 'passed' },
+  ];
+  const stamp = (line) => `2026-11-13T02:55:01.0228892Z ${line}`;
+  const log = ['\uFEFF' + stamp('##[group]Run npm run test:responses'), stamp('##[endgroup]'),
+    stamp('##[group]Run npm run test:azure:keyvault'), stamp('npm run test:azure:keyvault'), stamp('##[endgroup]'),
+    stamp('##[group]Azure OpenAI v1 / baseline SDK 7.3.0: Count input tokens'),
+    stamp('compat-case-result baseline-azure-v1 method:inputTokens.count: Azure OpenAI v1 / baseline SDK 7.3.0: Count input tokens'),
+    stamp('Failed (HTTP 400)'), stamp('##[endgroup]'),
+    stamp('compat-case-result current-openai method:create: OpenAI-hosted API / comparison SDK 7.45.1: Create a text response'),
+    stamp('Passed')].join('\n');
+  const job = 'https://github.com/example/tests/actions/runs/1/job/2';
+  const directory = await mkdtemp(join(tmpdir(), 'core-links-'));
+  const reportFile = join(directory, 'azure-live.json');
+  const summaryFile = join(directory, 'summary.md');
+  const originalFetch = globalThis.fetch;
+  const originalLog = console.log;
+  try {
+    await import('node:fs/promises').then((fs) => fs.writeFile(reportFile, JSON.stringify({ live: true, results: rows })));
+    globalThis.fetch = async (url) => new Response(url.endsWith('/logs') ? log : JSON.stringify({ jobs: [{
+      id: 2, name: liveJobName, html_url: job, steps: [{ number: 12, name: liveStepName }],
+    }] }));
+    console.log = () => {};
+    await summaryMain({ reportFile, env: {
+      GITHUB_REPOSITORY: 'example/tests', GITHUB_RUN_ID: '1', GITHUB_RUN_ATTEMPT: '1', GH_TOKEN: 'token', GITHUB_STEP_SUMMARY: summaryFile,
+    } });
+    const summary = await readFile(summaryFile, 'utf8');
+    assert.ok(summary.includes(`(${job}#step:12:6 "`), 'failure links to its outcome line');
+    assert.ok(summary.includes('| \u{1f7e2} Passed |'), 'passed cells are not linked');
+    assert.ok(!summary.includes(`${job}#step:12:9`));
+    assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
+    assert.deepEqual(caseLineLinks('no markers', { results: rows }, `${job}#step:12`), {});
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.log = originalLog;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('Responses-core persists revision-pinned test links and log links while the job summary stays table-only', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'core-summary-'));
   const env = {
@@ -385,9 +428,16 @@ test('Responses-core persists revision-pinned test links and log links while the
     assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
     assert.ok(summary.includes(env.RESPONSES_LIVE_LOG_URL));
     assert.ok(logs.some((line) => line.startsWith('::group::Azure OpenAI v1 / baseline SDK 7.3.0: Count input tokens')));
+    assert.ok(logs.includes('compat-case-result baseline-azure-v1 method:inputTokens.count: Azure OpenAI v1 / baseline SDK 7.3.0: Count input tokens'));
     assert.ok(logs.some((line) => line.includes('Failed step: Count input tokens')));
     assert.equal(process.exitCode, 1);
+
+    process.env.COMPAT_SUMMARY_DEFERRED = 'true';
+    await rm(env.GITHUB_STEP_SUMMARY);
+    await writeLiveReport({ live: true, results: [] }, reportFile);
+    await assert.rejects(readFile(env.GITHUB_STEP_SUMMARY), { code: 'ENOENT' }, 'summary job writes the deferred table');
   } finally {
+    delete process.env.COMPAT_SUMMARY_DEFERRED;
     console.log = before.log;
     process.exitCode = before.exitCode;
     for (const [key, value] of Object.entries(previous)) {

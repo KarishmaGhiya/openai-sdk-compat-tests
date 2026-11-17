@@ -90,6 +90,7 @@ jobs:
           AZURE_COMPANION_CHAT_DEPLOYMENT: ${{ inputs.companion_chat_deployment }}
           AZURE_KEYVAULT_URL: ${{ vars.AZURE_KEYVAULT_URL }}
           AZURE_COMPAT_SECRET_NAME: ${{ vars.AZURE_COMPAT_SECRET_NAME || 'openai-azure-compat-config' }}
+          COMPAT_SUMMARY_DEFERRED: ${{ inputs.mode == 'responses-core' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -97,3 +98,28 @@ jobs:
           path: reports/azure-live.json
           if-no-files-found: ignore
           retention-days: 7
+
+  summary:
+    needs: live
+    if: always() && needs.live.result != 'skipped' && inputs.mode == 'responses-core'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true
+        with:
+          name: azure-live-results
+          path: reports
+      - name: Write results table linked to exact log lines
+        run: node scripts/responses-summary.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
