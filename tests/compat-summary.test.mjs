@@ -331,7 +331,8 @@ test('the issue-filing GitHub App key is exchanged for a token limited to the is
     calls.push({ url, init });
     return { ok: true, status: 200, json: async () => (url.endsWith('/installation') ? { id: 42 } : { token: 'ghs_x' }) };
   };
-  const token = await appInstallationToken({ clientId: 'Iv1.abc', privateKey: privateKey.export({ type: 'pkcs8', format: 'pem' }),
+  const flattened = privateKey.export({ type: 'pkcs1', format: 'pem' }).trim().replace(/\n/g, ' ');
+  const token = await appInstallationToken({ clientId: 'Iv1.abc', privateKey: flattened,
     repos: { openapi: 'o/spec', sdk: 'o/node', azure: 'o/azure' }, fetchImpl, now: 1_000_000_000 });
   assert.equal(token, 'ghs_x');
   const jwt = calls[0].init.headers.authorization.replace('Bearer ', '');

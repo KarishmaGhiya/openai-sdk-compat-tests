@@ -3,11 +3,19 @@ import { responsesIssueFindings } from '../lib/compat-summary.mjs';
 
 const base64url = (value) => Buffer.from(value).toString('base64url');
 
+// Key Vault values pasted via --value often lose PEM line breaks; rebuild them from the header, body, and footer.
+export function normalizePem(key) {
+  const match = /-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/.exec(key ?? '');
+  if (!match) return key;
+  const body = match[2].replace(/\\n|\s+/g, '');
+  return `-----BEGIN ${match[1]}-----\n${body.match(/.{1,64}/g).join('\n')}\n-----END ${match[1]}-----\n`;
+}
+
 // Exchanges the GitHub App private key for a one-hour installation token restricted to the issue repositories and Issues: write.
 export async function appInstallationToken({ clientId, privateKey, repos, fetchImpl = fetch, now = Date.now() }) {
   const iat = Math.floor(now / 1000) - 60;
   const unsigned = `${base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${base64url(JSON.stringify({ iat, exp: iat + 540, iss: clientId }))}`;
-  const jwt = `${unsigned}.${createSign('RSA-SHA256').update(unsigned).sign(privateKey, 'base64url')}`;
+  const jwt = `${unsigned}.${createSign('RSA-SHA256').update(unsigned).sign(normalizePem(privateKey), 'base64url')}`;
   const call = async (method, path, body) => {
     const response = await fetchImpl(`https://api.github.com/${path}`, {
       method,
