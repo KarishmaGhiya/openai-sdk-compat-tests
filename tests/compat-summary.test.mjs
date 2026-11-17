@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderLiveSummary, renderResponsesSummary, renderResponsesCaseLog } from '../lib/compat-summary.mjs';
+import { renderLiveSummary, renderResponsesSummary, renderResponsesCaseLog, responsesFailureCategory } from '../lib/compat-summary.mjs';
 
 test('Responses-core renders only a linked colored matrix with evidence-qualified categories', () => {
   const source = 'https://github.com/example/tests/blob/abc/lib/responses-live.mjs#L176';
@@ -240,4 +240,31 @@ test('inline failure explanations prefer explicit service evidence and safely ha
   assert.match(mainRow, /Failed step: Fetch next input-items page/);
   assert.match(mainRow, /Root cause not captured; further investigation required/);
   assert.doesNotMatch(summary, /SECRET-|function Object|function constructor/);
+});
+
+test('failed results are attributed to the OpenAI SDK, Azure OpenAI API, or OpenAI API spec by comparing SDKs and providers', () => {
+  const row = (client, status, error) => ({ suite: 'responses', feature: 'method:create', client, status, error,
+    provider: client.includes('azure') ? 'azure' : 'openai', version: client.startsWith('baseline') ? '7.3.0' : '7.45.1' });
+  const category = (rows) => responsesFailureCategory(rows[0], rows);
+  const http400 = { status: 400 };
+  assert.equal(category([row('baseline-azure-v1', 'failed', http400), row('current-azure-v1', 'passed'), row('baseline-openai', 'passed')]),
+    'OpenAI SDK issue: fails on SDK 7.3.0 but passes on SDK 7.45.1 against the same API');
+  assert.equal(category([row('current-azure-v1', 'failed', http400), row('baseline-azure-v1', 'failed', http400),
+    row('current-openai', 'passed'), row('baseline-openai', 'passed')]),
+  'Azure OpenAI API issue: fails on Azure OpenAI but passes on OpenAI-hosted API with the same SDK');
+  assert.equal(category([row('current-openai', 'failed', http400), row('baseline-openai', 'failed', http400),
+    row('current-azure-v1', 'passed')]), 'OpenAI API Spec issue: fails on OpenAI-hosted API but passes on Azure OpenAI with the same SDK');
+  const assertion = { name: 'AssertionError', status: null };
+  assert.match(category(['current-azure-v1', 'baseline-azure-v1', 'current-openai', 'baseline-openai']
+    .map((client) => row(client, 'failed', assertion))), /^OpenAI API Spec issue: fails on every compared API and SDK version/);
+  assert.equal(category([row('baseline-azure-v1', 'failed', { status: 400, knownCause: 'model-unsupported-for-operation' })]),
+    'Azure OpenAI API issue: model not supported for this operation');
+  assert.equal(category([row('baseline-azure-v1', 'failed', { status: 403 }), row('baseline-openai', 'passed')]),
+    'Configuration issue: credentials or permissions rejected (HTTP 403)');
+  assert.equal(category([row('baseline-azure-v1', 'failed', http400)]), 'API rejection; cause unconfirmed');
+  const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [
+    row('baseline-azure-v1', 'failed', http400), row('baseline-openai', 'passed')] });
+  assert.match(summary, /Failed \(HTTP 400\); Azure OpenAI API issue: fails on Azure OpenAI but passes on OpenAI-hosted API/);
+  assert.match(renderResponsesCaseLog(row('baseline-azure-v1', 'failed', http400), [row('baseline-openai', 'passed')]),
+    /Category: Azure OpenAI API issue/);
 });
