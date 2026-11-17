@@ -387,7 +387,8 @@ test('the follow-up summary links each case to its exact outcome line in the fin
     } });
     const summary = await readFile(summaryFile, 'utf8');
     assert.ok(summary.includes(`(${job}#step:12:6 "`), 'failure links to its outcome line');
-    assert.ok(summary.includes(`[\u{1f7e2} Passed](${job}#step:12:9)`));
+    assert.ok(summary.includes('| \u{1f7e2} Passed |'), 'passed cells are not linked');
+    assert.ok(!summary.includes(`${job}#step:12:9`));
     assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
     assert.deepEqual(caseLineLinks('no markers', { results: rows }, `${job}#step:12`), {});
   } finally {

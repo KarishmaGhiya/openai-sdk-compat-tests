@@ -26,7 +26,8 @@ test('Responses-core renders only a linked colored matrix with evidence-qualifie
   assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
   assert.ok(summary.includes(`[Create a text response](${source})`));
   assert.ok(summary.includes(`[Count input tokens](${test})`));
-  assert.ok(summary.includes(`[\u{1f7e2} Passed](${logs})`));
+  assert.ok(summary.includes('| \u{1f7e2} Passed |'), 'passed cells are not linked');
+  assert.ok(!summary.includes(`[\u{1f7e2} Passed]`));
   assert.ok(summary.includes(`[\u{1f534} Failed (HTTP 400); API rejection; cause unconfirmed](${logs}`));
   assert.match(summary, /HTTP 404.*Lookup returned not found/);
   assert.match(summary, /SDK surface gap/);
