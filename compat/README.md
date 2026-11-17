@@ -230,8 +230,14 @@ that case's result in the live step (passed cells are not linked). Because line 
 live job ends, a follow-up `summary` job (read-only `actions: read`, no secrets)
 reads the finished job log and writes the table; if that lookup fails, links fall
 back to the live step and then to the run page. Logs group the safe diagnostics by SDK/provider
-and test. HTTP rejections identify an API rejection, not a proven SDK/spec bug;
-assertion mismatches leave spec/SDK/API attribution unconfirmed. Missing fixtures
+and test. Each failure is labelled by comparing the same test across SDK versions
+and providers: **OpenAI SDK issue** when another SDK version passes against the
+same API; **Azure OpenAI API issue** when the same SDK passes on the OpenAI-hosted
+API but fails on Azure (or a recognized Azure service cause); **OpenAI API Spec
+issue** when the OpenAI-hosted API fails but Azure passes, or every compared API
+and SDK version fails the contract. Credential (401/403), quota (429), and
+deployment errors are labelled as configuration/quota issues, and failures without
+enough peers to compare stay "cause unconfirmed" rather than guessed. Missing fixtures
 and unexecuted cases remain nonpassing and uncolored. Offline details remain in
 the artifact and logs instead of adding prose to this mode's summary.
 
@@ -239,11 +245,11 @@ Live failures also record the service error type, the Azure request ID
 (`apim-request-id`, for support cases), and the service message after redaction:
 quoted values, URLs, IDs, model/deployment names, configured secrets, and other
 identifier-like words are replaced with `{value}`/`{url}`. Recognized messages are
-labelled with a confirmed cause, for example **API limitation: model not
+labelled with a confirmed cause, for example **Azure OpenAI API issue: model not
 supported for this operation**. Listing input items retries a stored-response 404
 for up to 30 seconds. If the items then appear, the case is a yellow **Passed with
-warning; API read-after-write delay** with the delay. If they never appear, it
-fails as **API issue: stored response not found after retries**.
+warning; Azure OpenAI API issue: read-after-write delay** with the delay. If they never appear, it
+fails as **Azure OpenAI API issue: stored response not found after retries**.
 
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and
 `azure-live-results` for live case outcomes. No extra inference calls are needed

@@ -28,7 +28,7 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
       };
     }
     for (const row of report.results) {
-      const [title, ...details] = renderResponsesCaseLog(row).split('\n');
+      const [title, ...details] = renderResponsesCaseLog(row, report.results).split('\n');
       console.log(`::group::${title}`);
       console.log(`${caseLogMarker(row)}: ${title}`);
       console.log(details.join('\n'));
