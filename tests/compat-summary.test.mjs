@@ -1,6 +1,58 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderLiveSummary, renderResponsesSummary } from '../lib/compat-summary.mjs';
+import { renderLiveSummary, renderResponsesSummary, renderResponsesCaseLog } from '../lib/compat-summary.mjs';
+
+test('Responses-core renders only a linked colored matrix with evidence-qualified categories', () => {
+  const source = 'https://github.com/example/tests/blob/abc/lib/responses-live.mjs#L176';
+  const test = 'https://github.com/example/tests/blob/abc/lib/responses-live.mjs#L272';
+  const logs = 'https://github.com/example/tests/actions/runs/123/job/456#step:12:1';
+  const rows = [
+    { feature: 'method:create', status: 'passed' },
+    { feature: 'method:inputTokens.count', status: 'failed', error: {
+      status: 400, operation: 'responses.inputTokens.count', serviceSignals: ['unsupported', 'model'],
+      message: 'SECRET-MESSAGE', rootCause: 'SECRET-CAUSE',
+    } },
+    { feature: 'method:inputItems.list', status: 'failed', error: { status: 404, operation: 'responses.inputItems.list' } },
+    { feature: 'method:compact', status: 'sdk-unavailable' },
+    { feature: 'method:parse', status: 'failed', error: { name: 'AssertionError', status: null } },
+    { feature: 'method:retrieve', status: 'missing-fixture' },
+    { feature: 'method:cancel', status: 'declared-unsupported' },
+    { feature: 'method:stream', status: 'failed', error: { status: null } },
+  ].map((row) => ({ suite: 'responses', provider: 'azure', client: 'baseline-azure-v1', version: '7.3.0', ...row }));
+  const summary = renderLiveSummary({
+    summaryMode: 'responses-core', live: true, links: { source, logs, tests: { 'method:inputTokens.count': test } },
+    results: rows,
+  });
+  assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
+  assert.ok(summary.includes(`[Create a text response](${source})`));
+  assert.ok(summary.includes(`[Count input tokens](${test})`));
+  assert.ok(summary.includes(`[\u{1f7e2} Passed](${logs})`));
+  assert.ok(summary.includes(`[\u{1f534} Failed (HTTP 400); API rejection; cause unconfirmed](${logs}`));
+  assert.match(summary, /HTTP 404.*Lookup returned not found/);
+  assert.match(summary, /SDK surface gap/);
+  assert.match(summary, /Contract mismatch; spec\/SDK\/API unconfirmed/);
+  assert.match(summary, /Runtime failure; cause unconfirmed/);
+  assert.match(summary, /Not run: missing fixture/);
+  assert.match(summary, /Declared unsupported \(not verified\)/);
+  assert.doesNotMatch(summary, /SECRET-|<details>|###|All \d+ selected/);
+  const log = renderResponsesCaseLog(rows[1]);
+  assert.match(log, /Count input tokens/);
+  assert.match(log, /Failed step: Count input tokens/);
+  assert.match(log, /Suspected Azure model\/service support limitation \(unconfirmed/);
+  assert.doesNotMatch(log, /SECRET-/);
+});
+
+test('Responses-core setup and unsafe or missing links never create misleading passes or links', () => {
+  const blocked = renderLiveSummary({ summaryMode: 'responses-core', live: false, results: [] });
+  assert.match(blocked, /Not run: setup failed/);
+  assert.doesNotMatch(blocked, /Passed|\u{1f7e2}/u);
+  const summary = renderLiveSummary({
+    summaryMode: 'responses-core', links: { source: 'javascript:alert(1)', logs: 'https://github.com/x/y/actions/runs/1)bad' },
+    results: [{ feature: 'method:create', provider: 'openai', status: 'blocked-before-paid-calls' }],
+  });
+  assert.match(summary, /Not run: preflight blocked/);
+  assert.doesNotMatch(summary, /javascript:|bad|\]\(/);
+});
 
 function offlineReport() {
   const entry = (version, parsed, delivery) => ({

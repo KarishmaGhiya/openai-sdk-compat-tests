@@ -53,6 +53,14 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.equal(inputs.responses_features.default, '');
   assert.equal(live.env.AZURE_COMPANION_FEATURES, '${{ inputs.companion_features }}');
   assert.equal(live.env.AZURE_COMPANION_CHAT_DEPLOYMENT, '${{ inputs.companion_chat_deployment }}');
+  assert.equal(job.permissions['actions'], 'read');
+  const logs = job.steps.find((step) => step.name === 'Locate live test logs');
+  assert.equal(logs.if, "inputs.mode == 'responses-core'");
+  assert.match(logs.run, /GITHUB_RUN_ATTEMPT/);
+  assert.ok(logs.run.includes(live.name));
+  assert.match(logs.run, /RESPONSES_LIVE_LOG_URL=/);
+  const offlineReport = job.steps.find((step) => step.run === 'npm run responses:report');
+  assert.equal(offlineReport.env.AZURE_COMPAT_MODE, '${{ inputs.mode }}');
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

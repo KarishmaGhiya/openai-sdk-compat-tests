@@ -222,6 +222,16 @@ details, not a list of failed live tests. The live section provides an overall
 verdict and a feature-by-SDK/provider result table, explains partial coverage and
 nonpassing statuses, and states what was not measured.
 
+In `responses-core` mode, the job summary contains **only the live result
+matrix**: green pass and red failure indicators, HTTP status, and a short
+evidence-qualified failure category. Test names link to the executed test
+implementation at the workflow commit; outcomes link to the live step logs
+(the run page is the fallback). Logs group the safe diagnostics by SDK/provider
+and test. HTTP rejections identify an API rejection, not a proven SDK/spec bug;
+assertion mismatches leave spec/SDK/API attribution unconfirmed. Missing fixtures
+and unexecuted cases remain nonpassing and uncolored. Offline details remain in
+the artifact and logs instead of adding prose to this mode's summary.
+
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and
 `azure-live-results` for live case outcomes. No extra inference calls are needed
 to generate either summary. A completed workflow's existing summary is not
