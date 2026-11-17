@@ -268,3 +268,56 @@ test('failed results are attributed to the OpenAI SDK, Azure OpenAI API, or Open
   assert.match(renderResponsesCaseLog(row('baseline-azure-v1', 'failed', http400), [row('baseline-openai', 'passed')]),
     /Category: Azure OpenAI API issue/);
 });
+
+test('categorized failures file one issue per fingerprint, reuse existing issues, and link the category text', async () => {
+  const { fileFailureIssues } = await import('../scripts/failure-issues.mjs');
+  const base = { suite: 'responses', feature: 'method:inputTokens.count', version: '7.3.0' };
+  const fail = (client, requestId) => ({ ...base, client, provider: 'azure', status: 'failed', version: client.startsWith('baseline') ? '7.3.0' : '7.45.1',
+    error: { status: 400, operation: 'responses.inputTokens.count', knownCause: 'model-unsupported-for-operation', requestId,
+      serviceMessage: 'This model is not supported by Responses API.' } });
+  const report = { summaryMode: 'responses-core', links: { run: 'https://github.com/o/r/actions/runs/1', cases: {} }, results: [
+    fail('baseline-azure-v1', 'req-aaaaaaaa'), fail('current-azure-v1', 'req-bbbbbbbb'),
+    { ...base, client: 'baseline-openai', provider: 'openai', status: 'passed' },
+    { ...base, client: 'baseline-openai', provider: 'openai', feature: 'method:create', status: 'failed', error: { status: 401 } },
+  ] };
+  const calls = [];
+  let issues = [];
+  const fetchImpl = async (url, init = {}) => {
+    const path = url.replace('https://api.github.com/', '');
+    const body = init.body ? JSON.parse(init.body) : undefined;
+    calls.push({ method: init.method, path, body });
+    const reply = (status, json) => ({ ok: status < 300, status, json: async () => json });
+    if (path.endsWith('/labels')) return reply(422, {});
+    if (init.method === 'GET' && path.includes('/issues?')) return reply(200, issues);
+    if (init.method === 'GET' && path.includes('/comments')) return reply(200, []);
+    if (init.method === 'POST' && path.endsWith('/issues')) {
+      const created = { number: 7, state: 'open', body: body.body, html_url: 'https://github.com/KarishmaGhiya/azure-rest-api-specs/issues/7' };
+      issues = [created];
+      return reply(201, created);
+    }
+    return reply(201, {});
+  };
+  const links = await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  const created = calls.filter((call) => call.method === 'POST' && call.path.endsWith('/issues'));
+  assert.equal(created.length, 1, 'both Azure SDK failures share one issue; the 401 is not filed');
+  assert.equal(created[0].path, 'repos/KarishmaGhiya/azure-rest-api-specs/issues');
+  assert.match(created[0].body.title, /Count input tokens on Azure OpenAI: model not supported/);
+  assert.match(created[0].body.body, /Request ID: req-aaaaaaaa[\s\S]*Request ID: req-bbbbbbbb/);
+  assert.match(created[0].body.body, /OpenAI-hosted API \/ baseline SDK 7\.3\.0 \| Passed/);
+  assert.deepEqual(Object.values(links), Array(2).fill('https://github.com/KarishmaGhiya/azure-rest-api-specs/issues/7'));
+
+  calls.length = 0;
+  await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  assert.equal(calls.filter((call) => call.method !== 'GET').length, 1, 'same evidence: reuse without a comment (only the label probe)');
+
+  calls.length = 0;
+  report.results[1].error.serviceMessage = 'Token counting is unavailable for this deployment.';
+  await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  const comments = calls.filter((call) => call.path.endsWith('/issues/7/comments') && call.method === 'POST');
+  assert.equal(comments.length, 1);
+  assert.match(comments[0].body.body, /New evidence[\s\S]*comparison SDK 7\.45\.1/);
+  assert.doesNotMatch(comments[0].body.body, /baseline SDK 7\.3\.0/);
+
+  const summary = renderLiveSummary({ ...report, links: { ...report.links, issues: links } });
+  assert.match(summary, /🔴 Failed \(HTTP 400\); \[Azure OpenAI API issue: model not supported for this operation\]\(https:\/\/github\.com\/KarishmaGhiya\/azure-rest-api-specs\/issues\/7\)/);
+});

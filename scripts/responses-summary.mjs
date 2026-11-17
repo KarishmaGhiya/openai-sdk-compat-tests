@@ -1,6 +1,7 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { caseLogMarker, renderLiveSummary } from '../lib/compat-summary.mjs';
+import { defaultIssueRepos, fileFailureIssues } from './failure-issues.mjs';
 
 export const liveJobName = 'live';
 export const liveStepName = 'Fetch Key Vault configuration in memory and run live tests';
@@ -56,6 +57,28 @@ export async function main({ reportFile = 'reports/azure-live.json', env = proce
     console.log(`Linked ${Object.keys(report.links.cases).length} of ${report.results.length} cases to exact log lines.`);
   } catch (error) {
     console.log(`::warning::Exact log-line links unavailable (${error.message}); linking to the live step instead.`);
+  }
+  report.links = { ...report.links, run: runUrl };
+  if (env.ISSUES_TOKEN) {
+    const repos = {
+      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
+      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
+      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
+    };
+    report.links.issues = await fileFailureIssues({ report, token: env.ISSUES_TOKEN, repos });
+  } else {
+    console.log('::notice::COMPAT_ISSUES_TOKEN is not configured; failure issues were not filed.');
+  }
+  report.links = { ...report.links, run: runUrl };
+  if (env.ISSUES_TOKEN) {
+    const repos = {
+      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
+      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
+      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
+    };
+    report.links.issues = await fileFailureIssues({ report, token: env.ISSUES_TOKEN, repos });
+  } else {
+    console.log('::notice::COMPAT_ISSUES_TOKEN is not configured; failure issues were not filed.');
   }
   const summary = renderLiveSummary(report);
   if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, summary);

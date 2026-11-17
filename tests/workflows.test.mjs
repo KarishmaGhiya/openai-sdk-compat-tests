@@ -68,7 +68,8 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.match(summary.if, /needs\.live\.result != 'skipped'/);
   assert.match(summary.if, /inputs\.mode == 'responses-core'/);
   assert.deepEqual(summary.permissions, { contents: 'read', actions: 'read' });
-  assert.equal(summary.environment, undefined, 'summary job must not receive live secrets');
+  assert.equal(summary.environment, 'compat-issues', 'summary job must use the issue-token environment, not live secrets');
+  assert.ok(summary.steps.some((step) => step.env?.ISSUES_TOKEN === '${{ secrets.COMPAT_ISSUES_TOKEN }}'));
   assert.equal(job.steps.find((step) => step.name === liveStepName)?.run, 'npm run test:azure:keyvault');
   assert.ok(summary.steps.some((step) => step.run === 'node scripts/responses-summary.mjs'));
 });
