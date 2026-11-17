@@ -9,7 +9,7 @@ import {
   runResponsesBuiltin, runResponsesLiveMatrix,
 } from '../lib/responses-live.mjs';
 import { responseFixture, responseEvents, responsesTargets, responsesTransport } from '../lib/responses-contract.mjs';
-import { main as liveMain } from '../scripts/azure-live.mjs';
+import { main as liveMain, writeLiveReport } from '../scripts/azure-live.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -242,14 +242,15 @@ test('top-level live entry point persists a redacted preflight report without ca
     log: console.log, summary: process.env.GITHUB_STEP_SUMMARY,
   };
   const directory = await mkdtemp(join(tmpdir(), 'compat-summary-'));
+  const reportFile = join(directory, 'azure-live.json');
   process.env.GITHUB_STEP_SUMMARY = join(directory, 'summary.md');
   let requests = 0;
   globalThis.fetch = () => { requests++; throw new Error('Must not contact inference'); };
   console.log = () => {};
   process.env.ALLOW_LIVE_API = 'true';
   try {
-    await liveMain(JSON.stringify(value));
-    const report = await readJSON('reports/azure-live.json');
+    await liveMain(JSON.stringify(value), { reportFile });
+    const report = JSON.parse(await readFile(reportFile, 'utf8'));
     assert.equal(requests, 0);
     assert.equal(report.blockedBeforePaidCalls, true);
     assert.equal(report.live, false);
@@ -281,6 +282,48 @@ test('Responses-only selection does not fall through to legacy audio or pretend 
   assert.ok(targets.every((target) => !target.id.includes('legacy')));
   assert.ok(targets.some((target) => target.id === 'current-azure-versioned'));
   assert.ok(targets.some((target) => target.id === 'baseline-azure-v1'));
+});
+
+test('Responses-core persists revision-pinned test links and log links while the job summary stays table-only', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'core-summary-'));
+  const env = {
+    AZURE_COMPAT_MODE: 'responses-core', GITHUB_STEP_SUMMARY: join(directory, 'summary.md'),
+    GITHUB_REPOSITORY: 'example/tests', GITHUB_SHA: 'a'.repeat(40), GITHUB_RUN_ID: '123',
+    RESPONSES_LIVE_LOG_URL: 'https://github.com/example/tests/actions/runs/123/job/456#step:12:1',
+  };
+  const previous = Object.fromEntries(Object.keys(env).map((key) => [key, process.env[key]]));
+  const before = { log: console.log, exitCode: process.exitCode };
+  const logs = [];
+  for (const [key, value] of Object.entries(env)) process.env[key] = value;
+  console.log = (text) => logs.push(text);
+  try {
+    const reportFile = join(directory, 'azure-live.json');
+    await writeLiveReport({
+      live: true, results: [{ suite: 'responses', feature: 'method:inputTokens.count', provider: 'azure',
+        client: 'baseline-azure-v1', version: '7.3.0', status: 'failed',
+        error: { status: 400, operation: 'responses.inputTokens.count', serviceSignals: ['unsupported', 'model'] } }],
+    }, reportFile);
+    const report = JSON.parse(await readFile(reportFile, 'utf8'));
+    assert.equal(report.summaryMode, 'responses-core');
+    assert.equal(report.links.logs, env.RESPONSES_LIVE_LOG_URL);
+    const lines = (await readFile(new URL('../lib/responses-live.mjs', import.meta.url), 'utf8')).split('\n');
+    const line = Number(report.links.tests['method:inputTokens.count'].split('#L')[1]);
+    assert.match(lines[line - 1], /id === 'method:inputTokens.count'/);
+    assert.ok(report.links.source.includes(env.GITHUB_SHA));
+    const summary = await readFile(env.GITHUB_STEP_SUMMARY, 'utf8');
+    assert.ok(summary.trim().split('\n').every((line) => line.startsWith('|')));
+    assert.ok(summary.includes(env.RESPONSES_LIVE_LOG_URL));
+    assert.ok(logs.some((line) => line.startsWith('::group::Azure OpenAI v1 / baseline SDK 7.3.0: Count input tokens')));
+    assert.ok(logs.some((line) => line.includes('Failed step: Count input tokens')));
+    assert.equal(process.exitCode, 1);
+  } finally {
+    console.log = before.log;
+    process.exitCode = before.exitCode;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    }
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test('unsupported declarations and absent SDK features are separate nonpassing outcomes', async () => {

@@ -42,6 +42,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -54,6 +55,8 @@ jobs:
       - run: npm run test:azure
       - run: npm run test:responses
       - run: npm run responses:report
+        env:
+          AZURE_COMPAT_MODE: ${{ inputs.mode }}
       - name: Save offline SDK compatibility evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -67,6 +70,14 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Locate live test logs
+        if: inputs.mode == 'responses-core'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          log_url=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+            --jq '.jobs[] | select(.name == "live") | .html_url as $url | .steps[] | select(.name == "Fetch Key Vault configuration in memory and run live tests") | "\($url)#step:\(.number):1"' 2>/dev/null) || log_url=""
+          echo "RESPONSES_LIVE_LOG_URL=${log_url:-https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID}" >> "$GITHUB_ENV"
       - name: Fetch Key Vault configuration in memory and run live tests
         run: npm run test:azure:keyvault
         env:

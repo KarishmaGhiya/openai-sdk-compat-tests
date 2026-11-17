@@ -5,8 +5,7 @@ import { makeLiveClients, selectLiveMode, validateLiveConfig, validateLivePrereq
 import { withKeyVaultConfig } from '../lib/azure-keyvault.mjs';
 import { renderLiveSummary } from '../lib/compat-summary.mjs';
 import { main } from '../scripts/azure-live.mjs';
-import { root } from '../lib/io.mjs';
-import { readFile, writeFile, mkdtemp, rm, unlink } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -268,9 +267,8 @@ test('workflow selection overrides only in-memory suites/deployment and preserve
 });
 
 test('live entrypoint writes redacted companion evidence and summary, and unobserved selected fields fail the run', async () => {
-  const file = join(root, 'reports', 'azure-live.json');
-  const priorReport = await readFile(file, 'utf8').catch((error) => { if (error.code !== 'ENOENT') throw error; });
   const directory = await mkdtemp(join(tmpdir(), 'azure-companion-summary-'));
+  const file = join(directory, 'azure-live.json');
   const summaryFile = join(directory, 'summary.md');
   const env = {
     ALLOW_LIVE_API: 'true', GITHUB_STEP_SUMMARY: summaryFile,
@@ -291,7 +289,7 @@ test('live entrypoint writes redacted companion evidence and summary, and unobse
       process.exitCode = 0;
       const mock = transport({ omitFilters });
       globalThis.fetch = mock.fetch;
-      await main(JSON.stringify({ ...config(), suites: ['responses'] }));
+      await main(JSON.stringify({ ...config(), suites: ['responses'] }), { reportFile: file });
       const report = JSON.parse(await readFile(file, 'utf8'));
       assert.deepEqual(report.suites, ['azure-companion']);
       assert.equal(report.versions['@azure/openai'], '2.0.0');
@@ -312,7 +310,7 @@ test('live entrypoint writes redacted companion evidence and summary, and unobse
     blocked.responses = { mode: 'full', azureApiMode: 'v1' };
     let paidCalls = 0;
     globalThis.fetch = () => { paidCalls++; throw new Error('Must not call any service'); };
-    await main(JSON.stringify(blocked));
+    await main(JSON.stringify(blocked), { reportFile: file });
     const report = JSON.parse(await readFile(file, 'utf8'));
     assert.equal(report.blockedBeforePaidCalls, true);
     assert.equal(paidCalls, 0);
@@ -328,7 +326,49 @@ test('live entrypoint writes redacted companion evidence and summary, and unobse
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete process.env[key]; else process.env[key] = value;
     }
-    if (priorReport === undefined) await unlink(file); else await writeFile(file, priorReport);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('missing companion prerequisites replace stale evidence and block every paid call with safe actionable labels', async () => {
+  const input = config(Object.keys(companionCases));
+  delete input.azureDeployments;
+  delete input.dataSources;
+  delete input.azureCompanion.groundingPrompt;
+  const directory = await mkdtemp(join(tmpdir(), 'companion-preflight-'));
+  const reportFile = join(directory, 'azure-live.json');
+  const before = { fetch: globalThis.fetch, log: console.log, allow: process.env.ALLOW_LIVE_API, exitCode: process.exitCode };
+  let requests = 0;
+  await writeFile(reportFile, JSON.stringify({ live: true, results: [{ status: 'passed' }] }));
+  globalThis.fetch = () => { requests++; throw new Error('Must not call any service'); };
+  console.log = () => {};
+  process.env.ALLOW_LIVE_API = 'true';
+  try {
+    await assert.rejects(withKeyVaultConfig({
+      vaultURL: 'https://fixture.vault.azure.net', secretName: 'config', allowLive: true,
+      client: { async getSecret() { return { value: JSON.stringify(input) }; } }, mask() {}, run() { requests++; },
+    }), (error) => {
+      assert.equal(error.name, 'CompanionPrerequisiteError');
+      assert.equal(error.results.length, 7);
+      return true;
+    });
+    await main(JSON.stringify(input), { reportFile });
+    const report = JSON.parse(await readFile(reportFile, 'utf8'));
+    assert.equal(requests, 0);
+    assert.equal(report.live, false);
+    assert.equal(report.blockedBeforePaidCalls, true);
+    assert.equal(process.exitCode, 1);
+    assert.equal(report.results.find((row) => row.feature === 'upload-parts').status, 'blocked-before-paid-calls');
+    const summary = renderLiveSummary(report);
+    for (const id of ['azureDeployments.chat', 'azureDeployments.completions', 'azureDeployments.images', 'dataSources', 'azureCompanion.groundingPrompt']) {
+      assert.ok(summary.includes(id));
+    }
+    assert.doesNotMatch(JSON.stringify(report) + summary, /PRIVATE-|fixture\.openai|test-chat/);
+  } finally {
+    globalThis.fetch = before.fetch;
+    console.log = before.log;
+    process.exitCode = before.exitCode;
+    if (before.allow === undefined) delete process.env.ALLOW_LIVE_API; else process.env.ALLOW_LIVE_API = before.allow;
     await rm(directory, { recursive: true, force: true });
   }
 });
