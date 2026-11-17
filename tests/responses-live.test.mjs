@@ -14,6 +14,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { renderLiveSummary } from '../lib/compat-summary.mjs';
+import { sanitizeServiceMessage } from '../lib/service-diagnostics.mjs';
 
 const config = () => ({
   endpoint: 'https://fixture.openai.azure.com', apiVersion: '2025-04-01-preview',
@@ -216,6 +217,76 @@ test('Responses diagnostics retain only known operations, codes, parameters, and
     assert.match(summary, /Where the Responses failures occurred/);
     assert.doesNotMatch(summary, /SECRET-/);
   }
+});
+
+function itemsTransport(notFoundCount, { status = 404, message = "Response with id 'resp_SECRET1' not found." } = {}) {
+  let lookups = 0;
+  return responsesTransport(Current, 'azure-v1', (request) => {
+    if (request.method === 'DELETE') return { status: 204 };
+    if (request.method === 'POST') return { body: responseFixture({ id: 'resp_SECRET1' }) };
+    if (!request.url.searchParams.has('after') && ++lookups <= notFoundCount) return {
+      status, headers: { 'apim-request-id': `0eeae89f-638d-4ced-b6ed-64${lookups}e8f72bfef` },
+      body: { error: { type: 'invalid_request_error', code: null, message } },
+    };
+    const next = request.url.searchParams.has('after');
+    return { body: { object: 'list', data: [{ id: next ? 'item_2' : 'item_1', type: 'message' }], has_more: !next } };
+  });
+}
+const itemsConfig = () => ({ ...config(), responses: { mode: 'selected', azureApiMode: 'v1', features: ['method:inputItems.list'] } });
+const itemsTarget = (client) => [{ client, SDK: Current, id: 'current-azure-v1', provider: 'azure', version: '7.45.1',
+  supported: new Set(['method:inputItems.list']) }];
+
+test('a stored response that becomes listable after 404s passes with a read-after-write warning', async () => {
+  const { client, requests } = itemsTransport(2);
+  const result = await runResponsesLiveMatrix(itemsConfig(), itemsTarget(client), undefined, { readAfterWriteDelayMs: 1 });
+  const row = result.results[0];
+  assert.equal(row.status, 'passed');
+  assert.equal(row.warning.kind, 'read-after-write-delay');
+  assert.equal(row.warning.retries, 2);
+  assert.equal(row.warning.requestId, '0eeae89f-638d-4ced-b6ed-642e8f72bfef');
+  assert.equal(requests.at(-1).method, 'DELETE');
+  const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [{ ...row, suite: 'responses' }] });
+  assert.match(summary, /\u{1f7e1} Passed with warning; API read-after-write delay/u);
+  assert.doesNotMatch(summary, /\u{1f7e2}|\u{1f534}/u);
+  assert.doesNotMatch(JSON.stringify(result) + summary, /SECRET/);
+});
+
+test('persistent stored-response 404s and unsupported-model 400s report exact redacted service causes', async () => {
+  const { client } = itemsTransport(Infinity);
+  const missing = (await runResponsesLiveMatrix(itemsConfig(), itemsTarget(client), undefined,
+    { readAfterWriteWindowMs: 5, readAfterWriteDelayMs: 1 })).results[0];
+  assert.equal(missing.status, 'failed');
+  assert.equal(missing.error.knownCause, 'stored-response-not-found-after-retry');
+  assert.equal(missing.error.serviceType, 'invalid_request_error');
+  assert.equal(missing.error.serviceMessage, 'Response with id {value} not found.');
+  assert.ok(Number.isInteger(missing.error.retriedForMs) && missing.error.retries > 0);
+
+  const value = itemsConfig();
+  value.responses.features = ['method:inputTokens.count'];
+  const { client: tokens } = responsesTransport(Current, 'azure-v1', () => ({
+    status: 400, headers: { 'apim-request-id': 'c57f9837-a864-4f68-8b42-3c1a47d5de7f' },
+    body: { error: { type: 'invalid_request_error', message: 'This model is not supported by Responses API.' } },
+  }));
+  const unsupported = (await runResponsesLiveMatrix(value, [{ ...itemsTarget(tokens)[0], supported: new Set(value.responses.features) }])).results[0];
+  assert.equal(unsupported.error.knownCause, 'model-unsupported-for-operation');
+  assert.equal(unsupported.error.serviceMessage, 'This model is not supported by Responses API.');
+  assert.equal(unsupported.error.requestId, 'c57f9837-a864-4f68-8b42-3c1a47d5de7f');
+
+  const summary = renderLiveSummary({ live: true, summaryMode: 'responses-core',
+    links: { logs: 'https://github.com/o/r/actions/runs/1/job/2' },
+    results: [missing, unsupported].map((row) => ({ ...row, suite: 'responses' })) });
+  assert.match(summary, /\u{1f534} Failed \(HTTP 404\); API issue: stored response not found after retries/u);
+  assert.match(summary, /\u{1f534} Failed \(HTTP 400\); API limitation: model not supported for this operation/u);
+  assert.match(summary, /Service message: This model is not supported by Responses API\. Request ID: c57f9837-a864-4f68-8b42-3c1a47d5de7f/);
+  assert.doesNotMatch(JSON.stringify([missing, unsupported]) + summary, /SECRET|resp_/);
+});
+
+test('service messages keep wording but drop identifiers, URLs, quoted values, and configured names', () => {
+  assert.equal(sanitizeServiceMessage(
+    "Model plainname at https://x.openai.azure.com/a?b=1 for 'q' rejected gpt-6.1-terra resp_abc input_tokens: no.", ['plainname']),
+  'Model {value} at {url} for {value} rejected {value} {value} input_tokens: no.');
+  assert.equal(sanitizeServiceMessage(undefined), undefined);
+  assert.ok(sanitizeServiceMessage('x '.repeat(300)).length <= 200);
 });
 
 test('full preflight lists missing fixture IDs and prevents every paid call, including other suites', async () => {

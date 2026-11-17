@@ -223,7 +223,7 @@ verdict and a feature-by-SDK/provider result table, explains partial coverage an
 nonpassing statuses, and states what was not measured.
 
 In `responses-core` mode, the job summary contains **only the live result
-matrix**: green pass and red failure indicators, HTTP status, and a short
+matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
 implementation at the workflow commit; outcomes link to the live step logs
 (the run page is the fallback). Logs group the safe diagnostics by SDK/provider
@@ -231,6 +231,16 @@ and test. HTTP rejections identify an API rejection, not a proven SDK/spec bug;
 assertion mismatches leave spec/SDK/API attribution unconfirmed. Missing fixtures
 and unexecuted cases remain nonpassing and uncolored. Offline details remain in
 the artifact and logs instead of adding prose to this mode's summary.
+
+Live failures also record the service error type, the Azure request ID
+(`apim-request-id`, for support cases), and the service message after redaction:
+quoted values, URLs, IDs, model/deployment names, configured secrets, and other
+identifier-like words are replaced with `{value}`/`{url}`. Recognized messages are
+labelled with a confirmed cause, for example **API limitation: model not
+supported for this operation**. Listing input items retries a stored-response 404
+for up to 30 seconds. If the items then appear, the case is a yellow **Passed with
+warning; API read-after-write delay** with the delay. If they never appear, it
+fails as **API issue: stored response not found after retries**.
 
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and
 `azure-live-results` for live case outcomes. No extra inference calls are needed
