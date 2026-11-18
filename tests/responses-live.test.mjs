@@ -13,7 +13,7 @@ import { main as liveMain, writeLiveReport } from '../scripts/azure-live.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { renderLiveSummary } from '../lib/compat-summary.mjs';
+import { caseLogMarker, renderLiveSummary } from '../lib/compat-summary.mjs';
 import { sanitizeServiceMessage } from '../lib/service-diagnostics.mjs';
 import { caseLineLinks, liveJobName, liveStepName, main as summaryMain } from '../scripts/responses-summary.mjs';
 
@@ -250,6 +250,13 @@ test('a stored response that becomes listable after 404s passes with a read-afte
   assert.match(summary, /\u{1f7e1} Passed with warning<hr>Azure OpenAI API issue: read-after-write delay/u);
   assert.doesNotMatch(summary, /\u{1f7e2}|\u{1f534}/u);
   assert.doesNotMatch(JSON.stringify(result) + summary, /SECRET/);
+  const marker = caseLogMarker(row);
+  const log = 'https://github.com/o/r/actions/runs/1/job/2#step:5:42';
+  const issue = 'https://github.com/o/specs/issues/7';
+  const linked = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [{ ...row, suite: 'responses' }],
+    links: { cases: { [marker]: log }, issues: { [marker]: issue } } });
+  assert.ok(linked.includes(`[\u{1f7e1} Passed with warning](${log} "Stored response returned 404`));
+  assert.ok(linked.includes(`<hr>[Azure OpenAI API issue: read-after-write delay](${issue})`));
 });
 
 test('persistent stored-response 404s and unsupported-model 400s report exact redacted service causes', async () => {

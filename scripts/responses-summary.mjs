@@ -75,26 +75,8 @@ export async function main({ reportFile = 'reports/azure-live.json', env = proce
       if (token) await revokeInstallationToken(token);
     }
   } else {
-    console.log('::notice::The issue-filing GitHub App is not configured; failure issues were not filed.');
-  }
-  report.links = { ...report.links, run: runUrl };
-  if (env.ISSUES_APP_CLIENT_ID && env.ISSUES_APP_PRIVATE_KEY) {
-    const repos = {
-      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
-      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
-      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
-    };
-    let token;
-    try {
-      token = await appInstallationToken({ clientId: env.ISSUES_APP_CLIENT_ID, privateKey: env.ISSUES_APP_PRIVATE_KEY, repos });
-      report.links.issues = await fileFailureIssues({ report, token, repos });
-    } catch (error) {
-      console.log(`::warning::Failure issues were not filed (${error.message}).`);
-    } finally {
-      if (token) await revokeInstallationToken(token);
-    }
-  } else {
-    console.log('::notice::The issue-filing GitHub App is not configured; failure issues were not filed.');
+    const reason = env.ISSUES_APP_CLIENT_ID ? 'the App private key could not be read (check the Azure login and Key Vault access)' : 'the issue-filing GitHub App is not configured';
+    console.log(`::notice::Failure issues were not filed: ${reason}.`);
   }
   const summary = renderLiveSummary(report);
   if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, summary);
