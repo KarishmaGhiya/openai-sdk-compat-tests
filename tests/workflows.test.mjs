@@ -67,10 +67,16 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.equal(summary.needs, 'live');
   assert.match(summary.if, /needs\.live\.result != 'skipped'/);
   assert.match(summary.if, /inputs\.mode == 'responses-core'/);
-  assert.deepEqual(summary.permissions, { contents: 'read', actions: 'read' });
-  assert.equal(summary.environment, undefined, 'summary job must not receive live secrets');
+  assert.deepEqual(summary.permissions, { contents: 'read', actions: 'read', 'id-token': 'write' });
+  assert.equal(summary.environment, 'compat-issues', 'summary job must use the issue-token environment, not live secrets');
+  const summaryLogin = summary.steps.find((step) => step.uses?.startsWith('azure/login@'));
+  assert.equal(summaryLogin.with['allow-no-subscriptions'], true);
+  assert.equal(summaryLogin['continue-on-error'], true, 'issue filing must never block the results table');
+  const fileStep = summary.steps.find((step) => step.run?.includes('node scripts/responses-summary.mjs'));
+  assert.match(fileStep.run, /az keyvault secret show/);
+  assert.equal(JSON.stringify(summary).includes('secrets.'), false, 'no GitHub-stored secret is used');
   assert.equal(job.steps.find((step) => step.name === liveStepName)?.run, 'npm run test:azure:keyvault');
-  assert.ok(summary.steps.some((step) => step.run === 'node scripts/responses-summary.mjs'));
+  assert.ok(summary.steps.some((step) => step.run?.includes('node scripts/responses-summary.mjs')));
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

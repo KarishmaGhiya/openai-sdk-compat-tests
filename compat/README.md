@@ -225,9 +225,11 @@ nonpassing statuses, and states what was not measured.
 In `responses-core` mode, the job summary contains **only the live result
 matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
-implementation at the workflow commit; failed outcomes link to the exact log line of
-that case's result in the live step (passed cells are not linked). Because line numbers are final only after the
-live job ends, a follow-up `summary` job (read-only `actions: read`, no secrets)
+implementation at the workflow commit. Failed and warning cells are split by a
+divider: the top shows the result (for failures, linked to the exact log line of
+that case's result in the live step) and the bottom shows the category, linked to
+its filed issue when there is one (passed cells are not linked). Because line numbers are final only after the
+live job ends, a follow-up `summary` job (read-only `actions: read`, no live API secrets)
 reads the finished job log and writes the table; if that lookup fails, links fall
 back to the live step and then to the run page. Logs group the safe diagnostics by SDK/provider
 and test. Each failure is labelled by comparing the same test across SDK versions
@@ -237,7 +239,21 @@ API but fails on Azure (or a recognized Azure service cause); **OpenAI API Spec
 issue** when the OpenAI-hosted API fails but Azure passes, or every compared API
 and SDK version fails the contract. Credential (401/403), quota (429), and
 deployment errors are labelled as configuration/quota issues, and failures without
-enough peers to compare stay "cause unconfirmed" rather than guessed. Missing fixtures
+enough peers to compare stay "cause unconfirmed" rather than guessed.
+The summary job files each labelled failure or warning as an issue (label `sdk-compat`)
+in KarishmaGhiya/openai-openapi (spec), openai-node (SDK), or azure-rest-api-specs
+(Azure), and links the category text to it. A hidden fingerprint (category type,
+test, provider, failed step, cause) finds an existing open or closed issue first;
+it is reused (reopened if closed) and only gets a comment when the run adds new
+evidence (another SDK/provider, status, or service message). Filing uses a GitHub
+App installed only on those repositories with Issues read/write. The
+`compat-issues` environment (main only) signs in through OIDC as the
+`id-compat-issues` managed identity, whose only Key Vault access is the App's
+private key secret. The key is read into memory, exchanged for a one-hour token
+limited to those repositories and Issues: write, and the token is revoked after
+filing. No GitHub-stored secret is used; if the App is not configured
+(`ISSUES_APP_CLIENT_ID` environment variable), the table renders without issue
+links. Missing fixtures
 and unexecuted cases remain nonpassing and uncolored. Offline details remain in
 the artifact and logs instead of adding prose to this mode's summary.
 
@@ -248,7 +264,7 @@ identifier-like words are replaced with `{value}`/`{url}`. Recognized messages a
 labelled with a confirmed cause, for example **Azure OpenAI API issue: model not
 supported for this operation**. Listing input items retries a stored-response 404
 for up to 30 seconds. If the items then appear, the case is a yellow **Passed with
-warning; Azure OpenAI API issue: read-after-write delay** with the delay. If they never appear, it
+warning** with **Azure OpenAI API issue: read-after-write delay** below it, with the delay. If they never appear, it
 fails as **Azure OpenAI API issue: stored response not found after retries**.
 
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and

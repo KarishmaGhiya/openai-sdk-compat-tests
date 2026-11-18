@@ -104,9 +104,12 @@ jobs:
     if: always() && needs.live.result != 'skipped' && inputs.mode == 'responses-core'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Signs in via OIDC as id-compat-issues, which can read only the issue-filing GitHub App key; no live API secrets.
+    environment: compat-issues
     permissions:
       contents: read
       actions: read
+      id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -119,7 +122,29 @@ jobs:
         with:
           name: azure-live-results
           path: reports
-      - name: Write results table linked to exact log lines
-        run: node scripts/responses-summary.mjs
+      - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
+        id: azure
+        if: vars.ISSUES_APP_CLIENT_ID != ''
+        continue-on-error: true
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: File failure issues and write results table linked to exact log lines
         env:
           GH_TOKEN: ${{ github.token }}
+          AZURE_LOGIN_OUTCOME: ${{ steps.azure.outcome }}
+          AZURE_KEYVAULT_NAME: ${{ vars.AZURE_KEYVAULT_NAME }}
+          ISSUES_APP_KEY_SECRET_NAME: ${{ vars.ISSUES_APP_KEY_SECRET_NAME }}
+          ISSUES_APP_CLIENT_ID: ${{ vars.ISSUES_APP_CLIENT_ID }}
+          OPENAPI_ISSUE_REPO: KarishmaGhiya/openai-openapi
+          SDK_ISSUE_REPO: KarishmaGhiya/openai-node
+          AZURE_ISSUE_REPO: KarishmaGhiya/azure-rest-api-specs
+        # The App key stays in this shell's memory and is passed only to the node process, which mints a one-hour token.
+        run: |
+          if [ "$AZURE_LOGIN_OUTCOME" = success ]; then
+            ISSUES_APP_PRIVATE_KEY="$(az keyvault secret show --vault-name "$AZURE_KEYVAULT_NAME" --name "$ISSUES_APP_KEY_SECRET_NAME" --query value -o tsv 2>/dev/null)" ||
+              { echo "::warning::Could not read the issue-filing App key from Key Vault."; ISSUES_APP_PRIVATE_KEY=""; }
+            export ISSUES_APP_PRIVATE_KEY
+          fi
+          node scripts/responses-summary.mjs

@@ -1,6 +1,7 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { caseLogMarker, renderLiveSummary } from '../lib/compat-summary.mjs';
+import { appInstallationToken, defaultIssueRepos, fileFailureIssues, revokeInstallationToken } from './failure-issues.mjs';
 
 export const liveJobName = 'live';
 export const liveStepName = 'Fetch Key Vault configuration in memory and run live tests';
@@ -56,6 +57,44 @@ export async function main({ reportFile = 'reports/azure-live.json', env = proce
     console.log(`Linked ${Object.keys(report.links.cases).length} of ${report.results.length} cases to exact log lines.`);
   } catch (error) {
     console.log(`::warning::Exact log-line links unavailable (${error.message}); linking to the live step instead.`);
+  }
+  report.links = { ...report.links, run: runUrl };
+  if (env.ISSUES_APP_CLIENT_ID && env.ISSUES_APP_PRIVATE_KEY) {
+    const repos = {
+      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
+      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
+      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
+    };
+    let token;
+    try {
+      token = await appInstallationToken({ clientId: env.ISSUES_APP_CLIENT_ID, privateKey: env.ISSUES_APP_PRIVATE_KEY, repos });
+      report.links.issues = await fileFailureIssues({ report, token, repos });
+    } catch (error) {
+      console.log(`::warning::Failure issues were not filed (${error.message}).`);
+    } finally {
+      if (token) await revokeInstallationToken(token);
+    }
+  } else {
+    console.log('::notice::The issue-filing GitHub App is not configured; failure issues were not filed.');
+  }
+  report.links = { ...report.links, run: runUrl };
+  if (env.ISSUES_APP_CLIENT_ID && env.ISSUES_APP_PRIVATE_KEY) {
+    const repos = {
+      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
+      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
+      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
+    };
+    let token;
+    try {
+      token = await appInstallationToken({ clientId: env.ISSUES_APP_CLIENT_ID, privateKey: env.ISSUES_APP_PRIVATE_KEY, repos });
+      report.links.issues = await fileFailureIssues({ report, token, repos });
+    } catch (error) {
+      console.log(`::warning::Failure issues were not filed (${error.message}).`);
+    } finally {
+      if (token) await revokeInstallationToken(token);
+    }
+  } else {
+    console.log('::notice::The issue-filing GitHub App is not configured; failure issues were not filed.');
   }
   const summary = renderLiveSummary(report);
   if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, summary);
