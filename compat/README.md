@@ -226,8 +226,8 @@ In `responses-core` mode, the job summary contains **only the live result
 matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
 implementation at the workflow commit. Failed and warning cells are split by a
-divider: the top shows the result (for failures, linked to the exact log line of
-that case's result in the live step) and the bottom shows the category, linked to
+divider: the top shows the result, linked to the exact log line of
+that case's result in the live step, and the bottom shows the category, linked to
 its filed issue when there is one (passed cells are not linked). Because line numbers are final only after the
 live job ends, a follow-up `summary` job (read-only `actions: read`, no live API secrets)
 reads the finished job log and writes the table; if that lookup fails, links fall
