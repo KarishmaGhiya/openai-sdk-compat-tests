@@ -249,7 +249,8 @@ evidence (another SDK/provider, status, or service message). Filing uses a GitHu
 App installed only on those repositories with Issues read/write. The
 `compat-issues` environment (main only) signs in through OIDC as the
 `id-compat-issues` managed identity, whose only Key Vault access is the App's
-private key secret. The key is read into memory, exchanged for a one-hour token
+private key secret. Its federated credential uses the immutable subject
+`repo:KarishmaGhiya@8968058/openai-sdk-compat-tests@1416271536:environment:compat-issues`. The key is read into memory, exchanged for a one-hour token
 limited to those repositories and Issues: write, and the token is revoked after
 filing. No GitHub-stored secret is used; if the App is not configured
 (`ISSUES_APP_CLIENT_ID` environment variable), the table renders without issue
