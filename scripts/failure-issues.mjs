@@ -78,10 +78,11 @@ async function paged(api, path, maxPages = 10) {
   return items;
 }
 
-// Files or updates one issue per categorized failure and returns { [caseLogMarker]: issueUrl }.
+// Files or updates one issue per categorized failure; returns { links: { [caseLogMarker]: issueUrl }, filed: [...] }.
 export async function fileFailureIssues({ report, token, repos = defaultIssueRepos, fetchImpl = fetch, log = console.log }) {
   const api = client(token, fetchImpl);
   const links = {};
+  const filed = [];
   const issuesByRepo = new Map();
   for (const finding of responsesIssueFindings(report)) {
     const repo = repos[finding.kind];
@@ -96,6 +97,8 @@ export async function fileFailureIssues({ report, token, repos = defaultIssueRep
       const marker = `<!-- sdk-compat-fingerprint: ${finding.fingerprint} -->`;
       const existing = issuesByRepo.get(repo).find((issue) => issue.body?.includes(marker));
       let url;
+      let number;
+      let action;
       if (existing) {
         const comments = await paged(api, `repos/${repo}/issues/${existing.number}/comments`);
         const known = [existing.body, ...comments.map((comment) => comment.body)].join('\n');
@@ -110,17 +113,22 @@ export async function fileFailureIssues({ report, token, repos = defaultIssueRep
           });
         }
         url = existing.html_url;
+        number = existing.number;
+        action = existing.state === 'closed' ? 'reopened' : newRows.length ? 'updated' : 'linked';
         log(`Reused ${repo}#${existing.number} for ${finding.feature}${newRows.length ? ' (added new evidence)' : ''}.`);
       } else {
         const created = await api('POST', `repos/${repo}/issues`, { title: finding.title, body: finding.body, labels: [issueLabel] });
         issuesByRepo.get(repo).push(created);
         url = created.html_url;
+        number = created.number;
+        action = 'created';
         log(`Created ${repo}#${created.number} for ${finding.feature}.`);
       }
       for (const caseMarker of finding.markers) links[caseMarker] = url;
+      filed.push({ url, repo, number, action, category: finding.category, test: finding.test });
     } catch (error) {
       log(`::warning::Could not file or update an issue for ${finding.feature} (${error.message}).`);
     }
   }
-  return links;
+  return { links, filed };
 }
