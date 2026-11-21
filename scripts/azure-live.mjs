@@ -66,7 +66,7 @@ export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON, { reportF
   }
   const versions = {};
   const { readJSON } = await import('../lib/io.mjs');
-  for (const name of ['openai', 'openai-current', '@azure/openai', 'azure-openai-legacy']) {
+  for (const name of ['openai', 'openai-current', '@azure/openai']) {
     versions[name] = (await readJSON(`node_modules/${name}/package.json`)).version;
   }
   const blocked = responsesPlan?.missing.length > 0;

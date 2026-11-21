@@ -191,11 +191,9 @@ test('blocked, unsupported, absent SDK, and failed outcomes are never summarized
 test('empty runs and unselected Responses cannot be presented as complete Responses coverage', () => {
   assert.match(renderLiveSummary({ live: false, results: [] }), /No live case results were recorded/);
   const summary = renderLiveSummary({ live: true, results: [{
-    suite: 'chat', client: 'legacy-azure', provider: 'azure', status: 'passed',
+    suite: 'chat', client: 'current-azure', provider: 'azure', status: 'passed',
   }] });
   assert.match(summary, /Responses suite was not selected/);
-  assert.match(summary, /Azure OpenAI \/ legacy @azure\/openai/);
-  assert.doesNotMatch(summary, /legacy.*SDK version not recorded/);
 });
 
 test('HTTP failures explain observed steps and suspected causes in the main comparison table, not just expandable details', () => {

@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as SDK from 'openai-current';
-import { chatResponse, contracts, deployment, legacyTransport, modernTransport } from '../lib/azure-contract.mjs';
-import { liveSuites, runLiveCase, runLiveMatrix, validateLiveConfig, validateLivePrerequisites } from '../lib/azure-live.mjs';
+import { chatResponse, contracts, deployment, modernTransport } from '../lib/azure-contract.mjs';
+import { liveSuites, makeLiveClients, runLiveCase, runLiveMatrix, validateLiveConfig, validateLivePrerequisites } from '../lib/azure-live.mjs';
 import { maskValues, validateVaultConfig, withKeyVaultConfig } from '../lib/azure-keyvault.mjs';
 import { readJSON, exec, root } from '../lib/io.mjs';
 import { renderLiveSummary } from '../lib/compat-summary.mjs';
@@ -30,7 +30,7 @@ test('live preflight rejects incomplete, ambiguous, or incorrectly routed config
   assert.equal(validateLiveConfig(entra).azureAuth, 'entra');
 });
 
-test('live suites include all eight legacy operations, plus optional Azure feature cases', () => {
+test('live suites cover all eight migrated operations, plus optional Azure feature cases', () => {
   for (const suite of ['chat', 'chat-stream', 'completions', 'completions-stream', 'embeddings', 'images', 'transcription', 'translation', 'on-your-data', 'azure-filters']) {
     assert.ok(liveSuites.includes(suite));
   }
@@ -51,10 +51,8 @@ test('audio and grounding prerequisites fail before starting any paid suite', as
 });
 
 test('live runner exercises real SDK responses and Azure metadata without external requests', async () => {
-  const legacy = legacyTransport(chatResponse);
   const modern = modernTransport(SDK, chatResponse);
   for (const suite of ['chat', 'azure-filters']) {
-    await runLiveCase({ client: legacy.client, legacy: true, provider: 'azure' }, suite, config());
     await runLiveCase({ client: modern.client, SDK, provider: 'azure' }, suite, config());
   }
   const embedding = modernTransport(SDK, contracts.embeddings.response);
@@ -62,9 +60,15 @@ test('live runner exercises real SDK responses and Azure metadata without extern
   assert.equal(result.dimensions, 2);
 });
 
+test('live matrix compares only the pinned OpenAI SDKs, never the retired @azure/openai v1 client', () => {
+  const clients = makeLiveClients(config());
+  assert.deepEqual(clients.map((entry) => entry.id), ['baseline-azure', 'baseline-openai', 'current-azure', 'current-openai']);
+  assert.ok(clients.every((entry) => entry.SDK && !entry.legacy));
+});
+
 test('live matrix never runs Azure-only suites against OpenAI and redacts service errors', async () => {
   const results = await runLiveMatrix({ suites: ['chat', 'azure-filters'] }, [
-    { id: 'legacy', provider: 'azure' }, { id: 'native', provider: 'openai' },
+    { id: 'baseline-azure', provider: 'azure' }, { id: 'native', provider: 'openai' },
   ], async (target) => {
     if (target.id === 'native') throw Object.assign(new Error('SECRET-RAW-REQUEST-BODY'), { status: 403, name: 'SECRET-ERROR-NAME' });
     return { kind: 'text', nonempty: true };
@@ -78,11 +82,11 @@ test('live matrix never runs Azure-only suites against OpenAI and redacts servic
 
 test('embedding shape regression between Azure SDKs fails without equating different provider models', async () => {
   const clients = [
-    { id: 'legacy', provider: 'azure' }, { id: 'azure-new', provider: 'azure' },
+    { id: 'baseline-azure', provider: 'azure' }, { id: 'current-azure', provider: 'azure' },
     { id: 'openai', provider: 'openai' },
   ];
   const results = await runLiveMatrix({ suites: ['embeddings'] }, clients,
-    async (target) => ({ kind: 'embedding', dimensions: target.id === 'legacy' ? 3 : 2 }));
+    async (target) => ({ kind: 'embedding', dimensions: target.id === 'baseline-azure' ? 3 : 2 }));
   assert.ok(results.some((entry) => entry.client === 'azure-dimension-parity' && entry.status === 'failed'));
   assert.ok(!results.some((entry) => entry.client === 'openai-dimension-parity'));
 });

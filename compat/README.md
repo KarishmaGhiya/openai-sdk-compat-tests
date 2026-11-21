@@ -76,11 +76,13 @@ It does not depend on filling the original 281-endpoint catalog.
 
 The default three suites (`chat`, `chat-stream`, `embeddings`) make calls from:
 
-1. The legacy Azure client to Azure.
-2. Both pinned `AzureOpenAI` clients to the same Azure deployments.
-3. Both pinned plain `OpenAI` clients to the public OpenAI API.
+1. Both pinned `AzureOpenAI` clients to the same Azure deployments.
+2. Both pinned plain `OpenAI` clients to the public OpenAI API.
 
-That is 15 inference calls by default, with no automatic retries. Text must be
+The retired `@azure/openai` v1 `OpenAIClient` is not called live; it is used
+only by the offline migration contracts.
+
+That is 12 inference calls by default, with no automatic retries. Text must be
 nonempty; streams must have a finish reason; embeddings must be finite numeric
 vectors with consistent dimensions across SDKs targeting the **same provider**.
 No exact answer match or cross-provider embedding equality is assumed.
@@ -88,12 +90,11 @@ No exact answer match or cross-provider embedding equality is assumed.
 Optional suites are `completions`, `completions-stream`, `images`,
 `transcription`, `translation`, `on-your-data`, and `azure-filters`.
 Choose only suites supported by your actual deployments/API version. Optional
-legacy text-completion and image/audio suites may fail because models/APIs have
+text-completion and image/audio suites may fail because models/APIs have
 retired; that is reported, not silently skipped.
 
 `on-your-data` compares Azure Search grounding/citations only on Azure. Configure
-`dataSources` using the modern `azure_search` shape; the runner translates the
-legacy request shape. `azure-filters` explicitly requires Azure prompt/choice
+`dataSources` using the modern `azure_search` shape. `azure-filters` explicitly requires Azure prompt/choice
 filter metadata; deployments not returning it fail that case.
 
 For image/audio/text completion suites, add corresponding keys to both
