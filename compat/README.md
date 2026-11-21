@@ -214,15 +214,18 @@ Schema changes fail review coverage even when an existing sample still compiles.
   requirements. Known reviewed differences remain visible without permanently
   failing CI; new unreviewed changes fail.
 
-The job summary separates **SDK compatibility findings - offline checks** from
-**Live API results**. The offline section explains what packages were compared,
-groups Azure typing gaps by capability with their remedies, and explains how SDK
-behavior changes affect application code. Raw field inventories are expandable
-details, not a list of failed live tests. The live section provides an overall
-verdict and a feature-by-SDK/provider result table, explains partial coverage and
-nonpassing statuses, and states what was not measured.
+The job summary opens with **Issues filed or linked** (issue, category, test,
+and whether it is new or existing) when the run filed or reused any issues.
+In `configured` mode it then shows **Live API results** (a one-line verdict and
+coverage note, then a feature-by-SDK/provider result table, partial coverage,
+nonpassing statuses, and what was not measured), followed by **SDK compatibility
+findings - offline checks** (packages compared, Azure typing gaps by capability
+with remedies, and SDK behavior changes; raw field inventories are expandable
+details, not failed live tests). Both modes write the summary from the follow-up
+`summary` job so the issue list comes first; `azure-companion` mode writes it
+directly and files no issues.
 
-In `responses-core` mode, the job summary contains **only the live result
+In `responses-core` mode, the job summary contains the issue list and **only the live result
 matrix**: green pass, yellow pass-with-warning, and red failure indicators, HTTP status, and a short
 evidence-qualified failure category. Test names link to the executed test
 implementation at the workflow commit. Failed and warning cells are split by a

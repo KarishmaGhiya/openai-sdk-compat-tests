@@ -130,7 +130,7 @@ test('Key Vault masking preserves public report labels while masking private val
       }] });
       for (const entry of masks) summary = summary.replaceAll(entry, '***');
       assert.match(summary, /Azure OpenAI v1 \/ baseline SDK 7.3.0/);
-      assert.match(summary, /all selected cases/);
+      assert.match(summary, /were not passed or not run/);
       assert.match(summary, /responses.create/);
       assert.doesNotMatch(summary, /PRIVATE-|offline-azure-key|offline-openai-key/);
     },

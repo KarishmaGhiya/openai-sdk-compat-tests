@@ -57,6 +57,7 @@ jobs:
       - run: npm run responses:report
         env:
           AZURE_COMPAT_MODE: ${{ inputs.mode }}
+          COMPAT_SUMMARY_DEFERRED: ${{ inputs.mode != 'azure-companion' }}
       - name: Save offline SDK compatibility evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -71,7 +72,7 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Locate live test logs
-        if: inputs.mode == 'responses-core'
+        if: inputs.mode != 'azure-companion'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -90,7 +91,7 @@ jobs:
           AZURE_COMPANION_CHAT_DEPLOYMENT: ${{ inputs.companion_chat_deployment }}
           AZURE_KEYVAULT_URL: ${{ vars.AZURE_KEYVAULT_URL }}
           AZURE_COMPAT_SECRET_NAME: ${{ vars.AZURE_COMPAT_SECRET_NAME || 'openai-azure-compat-config' }}
-          COMPAT_SUMMARY_DEFERRED: ${{ inputs.mode == 'responses-core' }}
+          COMPAT_SUMMARY_DEFERRED: ${{ inputs.mode != 'azure-companion' }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
@@ -101,7 +102,7 @@ jobs:
 
   summary:
     needs: live
-    if: always() && needs.live.result != 'skipped' && inputs.mode == 'responses-core'
+    if: always() && needs.live.result != 'skipped' && inputs.mode != 'azure-companion'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Signs in via OIDC as id-compat-issues, which can read only the issue-filing GitHub App key; no live API secrets.
@@ -121,6 +122,12 @@ jobs:
         continue-on-error: true
         with:
           name: azure-live-results
+          path: reports
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: inputs.mode == 'configured'
+        continue-on-error: true
+        with:
+          name: sdk-compatibility-details
           path: reports
       - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
         id: azure
