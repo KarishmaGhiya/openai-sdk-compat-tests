@@ -1,8 +1,8 @@
 import { makeLiveClients, runLiveMatrix, selectLiveMode, validateLivePrerequisites } from '../lib/azure-live.mjs';
-import { root, writeJSON } from '../lib/io.mjs';
+import { appendStepSummary, packageVersions, root, writeJSON } from '../lib/io.mjs';
 import { pathToFileURL } from 'node:url';
 import { makeResponsesLiveClients, runResponsesLiveMatrix } from '../lib/responses-live.mjs';
-import { appendFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { caseLogMarker, renderLiveSummary, renderResponsesCaseLog } from '../lib/compat-summary.mjs';
 import { CompanionPrerequisiteError, runCompanionLiveMatrix } from '../lib/azure-companion-live.mjs';
@@ -21,12 +21,14 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
       const lines = source.split('\n');
       const line = lines.findIndex((line) => line.startsWith('export async function runResponsesBuiltin(')) + 1;
       const sourceURL = `https://github.com/${repository}/blob/${sha}/lib/responses-live.mjs`;
+      const methods = [...new Set(report.results.map((row) => row.feature))].filter((id) => /^method:[\w.]+$/.test(id ?? ''));
+      const testLine = (id) => {
+        const index = lines.findIndex((text, index) => index >= line && text.includes(`id === '${id}'`));
+        return index < 0 ? line : index + 1;
+      };
       report.links = {
         source: `${sourceURL}${line ? `#L${line}` : ''}`,
-        tests: Object.fromEntries([...new Set(report.results.map((row) => row.feature))].filter((id) => /^method:[\w.]+$/.test(id ?? '')).map((id) => {
-          const index = lines.findIndex((text, index) => index >= line && text.includes(`id === '${id}'`));
-          return [id, `${sourceURL}#L${index < 0 ? line : index + 1}`];
-        })),
+        tests: Object.fromEntries(methods.map((id) => [id, `${sourceURL}#L${testLine(id)}`])),
         logs: process.env.RESPONSES_LIVE_LOG_URL || `https://github.com/${repository}/actions/runs/${run}`,
       };
     }
@@ -41,7 +43,7 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
   await writeJSON(reportFile, report);
   const summary = renderLiveSummary(report);
   console.log(summary);
-  if (process.env.GITHUB_STEP_SUMMARY && !deferred) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
+  if (!deferred) await appendStepSummary(summary);
   for (const entry of report.results) console.log(`${entry.status === 'passed' ? 'PASS' : 'FAIL'} ${entry.client ?? entry.provider} ${entry.feature ?? entry.suite} (${entry.status})`);
   if (report.blockedBeforePaidCalls || report.results.some((entry) => entry.status !== 'passed')) process.exitCode = 1;
 }
@@ -64,11 +66,7 @@ export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON, { reportF
     await writeCompanionPreflight(error, reportFile);
     return;
   }
-  const versions = {};
-  const { readJSON } = await import('../lib/io.mjs');
-  for (const name of ['openai', 'openai-current', '@azure/openai']) {
-    versions[name] = (await readJSON(`node_modules/${name}/package.json`)).version;
-  }
+  const versions = await packageVersions(['openai', 'openai-current', '@azure/openai']);
   const blocked = responsesPlan?.missing.length > 0;
   const results = blocked ? [] : await runLiveMatrix(config, makeLiveClients(config));
   let responses;

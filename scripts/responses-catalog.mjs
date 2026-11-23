@@ -1,10 +1,9 @@
 import { responsesInventory, responsesPackages } from '../lib/responses-inventory.mjs';
 import { responsesStreamErrorDelivery, responsesStreamStructuredParsing } from '../lib/responses-contract.mjs';
-import { compareVersions, readJSON, writeJSON } from '../lib/io.mjs';
+import { compareVersions, readOptionalJSON, writeJSON } from '../lib/io.mjs';
 
 const accept = process.argv.includes('--accept-contracts');
-let previous = { snapshots: [] };
-try { previous = await readJSON('compat/responses-matrix.json'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+const previous = await readOptionalJSON('compat/responses-matrix.json', { snapshots: [] });
 const snapshots = new Map(previous.snapshots.map((snapshot) => [snapshot.version, snapshot]));
 for (const name of responsesPackages) {
   const inventory = await responsesInventory(name);

@@ -1,9 +1,8 @@
-import { appendFile } from 'node:fs/promises';
-import { azureExtensionFields, compileAzureProbe, probeAzureTypes } from '../lib/azure-types.mjs';
+import { azureExtensionFields, probeAzureTypes, probeEnhancements } from '../lib/azure-types.mjs';
 import { responsesCoverage, responsesInventory, responsesPackages } from '../lib/responses-inventory.mjs';
 import { responsesStreamErrorDelivery, responsesStreamStructuredParsing } from '../lib/responses-contract.mjs';
 import { responsesBuiltinIds, responsesFeatureIds } from '../lib/responses-live.mjs';
-import { readJSON, writeJSON } from '../lib/io.mjs';
+import { appendStepSummary, packageVersion, readJSON, writeJSON } from '../lib/io.mjs';
 import { renderResponsesSummary } from '../lib/compat-summary.mjs';
 
 const catalog = await readJSON('compat/responses-matrix.json');
@@ -12,6 +11,8 @@ for (const name of responsesPackages) {
   const inventory = await responsesInventory(name);
   const coverage = responsesCoverage(inventory, catalog);
   const fields = await probeAzureTypes(name);
+  const SDK = await import(name);
+  const enhancements = probeEnhancements(name);
   packages.push({
     package: name, version: inventory.version,
     responses: {
@@ -20,13 +21,13 @@ for (const name of responsesPackages) {
       missingContracts: coverage.missing, unreviewedSchemas: coverage.unreviewedSchemas,
       removedBaseline: coverage.removedBaseline,
       unreviewedRemovals: coverage.unreviewedRemovals,
-      errorDelivery: await responsesStreamErrorDelivery(await import(name), 'openai'),
-      rawJsonSchemaStreamParsing: await responsesStreamStructuredParsing(await import(name)),
+      errorDelivery: await responsesStreamErrorDelivery(SDK, 'openai'),
+      rawJsonSchemaStreamParsing: await responsesStreamStructuredParsing(SDK),
     },
     azureNativeTypeGaps: fields.filter((field) => !field.native),
     legacyEnhancements: {
-      nativeTyped: compileAzureProbe(name, 'type Field = import("openai/resources/index").ChatCompletionCreateParamsNonStreaming["enhancements"];').length === 0,
-      companionTyped: compileAzureProbe(name, 'type Field = import("openai/resources/index").ChatCompletionCreateParamsNonStreaming["enhancements"];', true).length === 0,
+      nativeTyped: enhancements.native,
+      companionTyped: enhancements.withAzureTypes,
       runtimePassThrough: true, serviceVerified: false, classification: 'legacy-request-type-gap',
     },
   });
@@ -37,8 +38,8 @@ const report = {
   scope: 'Pinned SDK declarations and actual injected transports; not live service acceptance or every parameter combination.',
   packages,
   references: {
-    azureCompanionVersion: (await readJSON('node_modules/@azure/openai/package.json')).version,
-    legacyAzureVersion: (await readJSON('node_modules/azure-openai-legacy/package.json')).version,
+    azureCompanionVersion: await packageVersion('@azure/openai'),
+    legacyAzureVersion: await packageVersion('azure-openai-legacy'),
   },
   responsesAddedByAzureCompanion: (await azureExtensionFields()).filter((field) => /^(Responses?|InputItem|InputToken)/.test(field.type)),
   legacyAzureResponses: { available: false, classification: 'no-legacy-equivalent-not-a-native-openai-gap' },
@@ -60,9 +61,7 @@ await writeJSON('reports/responses-compatibility.json', report);
 const summary = renderResponsesSummary(report);
 console.log(summary);
 // The live workflow's summary job writes these findings after the live results and issue summary.
-if (process.env.GITHUB_STEP_SUMMARY && process.env.COMPAT_SUMMARY_DEFERRED !== 'true' && process.env.AZURE_COMPAT_MODE !== 'responses-core') {
-  await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
-}
+if (process.env.COMPAT_SUMMARY_DEFERRED !== 'true' && process.env.AZURE_COMPAT_MODE !== 'responses-core') await appendStepSummary(summary);
 if (packages.some((entry) => entry.responses.missingContracts.length || entry.responses.unreviewedSchemas.length || entry.responses.unreviewedRemovals.length ||
   entry.azureNativeTypeGaps.some((field) => !field.withAzureTypes ||
     (!field.callSite.withAzureTypes && !field.callSite.reviewedGap)))) process.exitCode = 1;

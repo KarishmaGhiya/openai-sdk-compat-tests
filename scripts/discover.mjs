@@ -1,6 +1,6 @@
 import { mkdir, access, appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { baseline, compareVersions, exec, npm, readJSON, root, stableVersions, writeJSON } from '../lib/io.mjs';
+import { baseline, compareVersions, exec, npm, readOptionalJSON, root, stableVersions, writeJSON } from '../lib/io.mjs';
 import { digest, diffSurface, inventory } from '../lib/inventory.mjs';
 
 const repository = join(root, '.cache', 'upstream');
@@ -18,12 +18,7 @@ try {
 const registryArgs = process.env.NPM_REGISTRY ? [`--registry=${process.env.NPM_REGISTRY}`] : [];
 let tags;
 let published;
-let prior;
-try {
-  prior = await readJSON('releases.json');
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-}
+const prior = await readOptionalJSON('releases.json');
 if (offline) {
   if (!prior) throw new Error('Offline discovery requires releases.json from an earlier online discovery.');
   tags = new Map(prior.releases.map((release) => [release.version, release.sha]));
@@ -44,26 +39,18 @@ for (const release of prior?.releases ?? []) {
     throw new Error(`Previously recorded tag v${release.version} disappeared or changed; manual review required.`);
   }
 }
-const tagged = stableVersions([...tags.keys()]);
+const versions = stableVersions([...tags.keys()]);
 if (!published.has(baseline) || !tags.has(baseline)) throw new Error(`Baseline ${baseline} must be tagged and published.`);
-const versions = tagged;
 if (!offline) {
   await git(['-C', repository, 'fetch', '--quiet', '--depth=1', 'origin',
     ...versions.map((version) => `refs/tags/v${version}:refs/tags/v${version}`)]);
 }
 
-let cases = [];
-try {
-  cases = await readJSON('cases/catalog.json');
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-}
+const cases = await readOptionalJSON('cases/catalog.json', []);
 const existing = new Set(cases.map((entry) => entry.id));
 function addCase(entry) {
-  if (existing.has(entry.id)) {
-    // Preserve partially authored cases as well as fully reviewed ones.
-    return;
-  }
+  // Preserve partially authored cases as well as fully reviewed ones.
+  if (existing.has(entry.id)) return;
   cases.push({
     ...entry, ready: false,
     steps: entry.method ? [{
@@ -73,6 +60,14 @@ function addCase(entry) {
     }] : [],
   });
   existing.add(entry.id);
+}
+function addEndpointCase(method, version) {
+  addCase({
+    id: `endpoint:${method.id}`, since: version, covers: [`endpoint:${method.id}`],
+    title: `Live ${method.id}`, method: method.id, endpoint: method.endpoint,
+    signature: method.signature, source: method.source, optionsIndex: method.optionsIndex,
+    assertions: method.assertions, ...(method.capture ? { capture: method.capture } : {}),
+  });
 }
 const releases = [];
 let previous;
@@ -86,29 +81,10 @@ for (const version of versions) {
   if (!previous) {
     for (const method of current.methods) {
       baselineMethods.add(method.id);
-      addCase({
-        id: `endpoint:${method.id}`, since: version, covers: [`endpoint:${method.id}`],
-        title: `Live ${method.id}`, method: method.id, endpoint: method.endpoint,
-        signature: method.signature, source: method.source, optionsIndex: method.optionsIndex,
-        assertions: method.assertions, ...(method.capture ? { capture: method.capture } : {}),
-      });
+      addEndpointCase(method, version);
     }
-    requirements.push(...current.features);
-    if (requirements.length) addCase({
-      id: `features:${version}`, since: version,
-      covers: requirements.map((entry) => entry.id),
-      title: `Live regression cases for ${version} features`,
-      requirements,
-    });
   } else {
-    for (const method of changes.addedMethods) {
-      addCase({
-        id: `endpoint:${method.id}`, since: version, covers: [`endpoint:${method.id}`],
-        title: `Live ${method.id}`, method: method.id, endpoint: method.endpoint,
-        signature: method.signature, source: method.source, optionsIndex: method.optionsIndex,
-        assertions: method.assertions, ...(method.capture ? { capture: method.capture } : {}),
-      });
-    }
+    for (const method of changes.addedMethods) addEndpointCase(method, version);
     for (const method of changes.changedMethods) {
       requirements.push({ id: `method:${version}:${method.id}`, description: `Changed ${method.id}: ${method.endpoint} ${method.signature}` });
     }
@@ -119,16 +95,16 @@ for (const version of versions) {
     for (const member of changes.removedSurface) {
       requirements.push({ id: `removed:${version}:${member}`, description: `Removed public surface: ${member}` });
     }
-    requirements.push(...current.features);
-    // One draft per release can contain multiple feature scenarios/obligations.
-    if (requirements.length) {
-      addCase({
-        id: `features:${version}`, since: version,
-        covers: requirements.map((entry) => entry.id),
-        title: `Live regression cases for ${version} additions and changes`,
-        requirements,
-      });
-    }
+  }
+  requirements.push(...current.features);
+  // One draft per release can contain multiple feature scenarios/obligations.
+  if (requirements.length) {
+    addCase({
+      id: `features:${version}`, since: version,
+      covers: requirements.map((entry) => entry.id),
+      title: `Live regression cases for ${version} ${previous ? 'additions and changes' : 'features'}`,
+      requirements,
+    });
   }
   releases.push({
     version, sha: tags.get(version), published: published.has(version),
@@ -143,12 +119,7 @@ cases.sort((a, b) => compareVersions(a.since, b.since) || a.id.localeCompare(b.i
 await writeJSON('cases/catalog.json', cases);
 await writeJSON('releases.json', { baseline, releases, fingerprint: digest(JSON.stringify(releases)) });
 
-let fixtures = {};
-try {
-  fixtures = await readJSON('fixtures/template.json');
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-}
+const fixtures = await readOptionalJSON('fixtures/template.json', {});
 for (const entry of cases) {
   if (!(entry.id in fixtures)) {
     fixtures[entry.id] = {
