@@ -1,6 +1,6 @@
 import { appendFile, readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { caseLogMarker, renderLiveSummary } from '../lib/compat-summary.mjs';
+import { caseLogMarker, renderLiveSummary, renderResponsesSummary } from '../lib/compat-summary.mjs';
 import { appInstallationToken, defaultIssueRepos, fileFailureIssues, revokeInstallationToken } from './failure-issues.mjs';
 
 export const liveJobName = 'live';
@@ -30,19 +30,18 @@ async function github(path, token, accept = 'application/vnd.github+json') {
   return accept.includes('json') ? response.json() : response.text();
 }
 
-export async function main({ reportFile = 'reports/azure-live.json', env = process.env } = {}) {
+export async function main({ reportFile = 'reports/azure-live.json', offlineReportFile = 'reports/responses-compatibility.json', env = process.env } = {}) {
   const repository = env.GITHUB_REPOSITORY;
   const run = env.GITHUB_RUN_ID;
   const attempt = env.GITHUB_RUN_ATTEMPT ?? '1';
   const runUrl = `https://github.com/${repository}/actions/runs/${run}`;
   let report;
   try { report = JSON.parse(await readFile(reportFile, 'utf8')); } catch {
-    const missing = `| Test | Result |\n| --- | --- |\n| Responses-core | [No live report was produced; see logs](${runUrl}) |\n`;
+    const missing = `| Test | Result |\n| --- | --- |\n| Live run | [No live report was produced; see logs](${runUrl}) |\n`;
     if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, missing);
     console.log(missing);
     return;
   }
-  report.summaryMode = 'responses-core';
   try {
     if (!/^[\w.-]+\/[\w.-]+$/.test(repository ?? '') || !/^\d+$/.test(run ?? '') || !/^\d+$/.test(attempt) || !env.GH_TOKEN) {
       throw new Error('Missing GitHub run context');
@@ -68,7 +67,9 @@ export async function main({ reportFile = 'reports/azure-live.json', env = proce
     let token;
     try {
       token = await appInstallationToken({ clientId: env.ISSUES_APP_CLIENT_ID, privateKey: env.ISSUES_APP_PRIVATE_KEY, repos });
-      report.links.issues = await fileFailureIssues({ report, token, repos });
+      const { links, filed } = await fileFailureIssues({ report, token, repos });
+      report.links.issues = links;
+      report.issueSummary = filed;
     } catch (error) {
       console.log(`::warning::Failure issues were not filed (${error.message}).`);
     } finally {
@@ -78,7 +79,11 @@ export async function main({ reportFile = 'reports/azure-live.json', env = proce
     const reason = env.ISSUES_APP_CLIENT_ID ? 'the App private key could not be read (check the Azure login and Key Vault access)' : 'the issue-filing GitHub App is not configured';
     console.log(`::notice::Failure issues were not filed: ${reason}.`);
   }
-  const summary = renderLiveSummary(report);
+  let summary = renderLiveSummary(report);
+  // Configured mode defers the offline findings too, so the issue summary stays first on the run page.
+  if (report.summaryMode !== 'responses-core') {
+    try { summary += `\n${renderResponsesSummary(JSON.parse(await readFile(offlineReportFile, 'utf8')))}`; } catch {}
+  }
   if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, summary);
   console.log(summary);
 }

@@ -139,12 +139,11 @@ test('offline summary distinguishes patched root exports from unresolved method-
 test('live summary explains all twelve passes as partial coverage and identifies the actual SDK/provider comparison', () => {
   const summary = renderLiveSummary(liveReport());
   assert.match(summary, /All 12 selected live cases passed/);
-  assert.match(summary, /complete: false means partial coverage, not a failed test/);
+  assert.match(summary, /Selected Responses features only \(partial coverage\)/);
   for (const target of ['Azure OpenAI v1 / baseline SDK 7.3.0', 'OpenAI-hosted API / comparison SDK 7.45.1']) assert.ok(summary.includes(target));
-  assert.match(summary, /service at api\.openai\.com using your OpenAI key/);
+  assert.match(summary, /OpenAI-hosted API and your Azure OpenAI resource/);
   assert.match(summary, /Create a text response/);
   assert.match(summary, /Valid JSON equals \{"value":7\}/);
-  assert.match(summary, /not separate @azure\/openai and OpenAI runtime implementations/);
   assert.match(summary, /legacy @azure\/openai client has no Responses resource/);
   assert.match(summary, /does not compare answer quality, latency, or cost/);
   assert.match(summary, /3 of 9 core methods passed/);
@@ -166,9 +165,9 @@ test('blocked, unsupported, absent SDK, and failed outcomes are never summarized
   ];
   let summary = renderLiveSummary(report);
   assert.match(summary, /fixture preflight blocked all paid API calls/);
-  assert.match(summary, /No paid API calls: blocked before execution/);
+  assert.match(summary, /No paid API calls were made/);
   assert.match(summary, /Not run: missing fixture/);
-  assert.match(summary, /Full inventory requested, but coverage is incomplete/);
+  assert.match(summary, /Full Responses inventory requested, but coverage is incomplete/);
   assert.doesNotMatch(summary, /All \d+ selected live cases passed/);
 
   report.blockedBeforePaidCalls = false;
@@ -192,11 +191,9 @@ test('blocked, unsupported, absent SDK, and failed outcomes are never summarized
 test('empty runs and unselected Responses cannot be presented as complete Responses coverage', () => {
   assert.match(renderLiveSummary({ live: false, results: [] }), /No live case results were recorded/);
   const summary = renderLiveSummary({ live: true, results: [{
-    suite: 'chat', client: 'legacy-azure', provider: 'azure', status: 'passed',
+    suite: 'chat', client: 'current-azure', provider: 'azure', status: 'passed',
   }] });
   assert.match(summary, /Responses suite was not selected/);
-  assert.match(summary, /Azure OpenAI \/ legacy @azure\/openai/);
-  assert.doesNotMatch(summary, /legacy.*SDK version not recorded/);
 });
 
 test('HTTP failures explain observed steps and suspected causes in the main comparison table, not just expandable details', () => {
@@ -298,7 +295,7 @@ test('categorized failures file one issue per fingerprint, reuse existing issues
     }
     return reply(201, {});
   };
-  const links = await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  const { links, filed } = await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
   const created = calls.filter((call) => call.method === 'POST' && call.path.endsWith('/issues'));
   assert.equal(created.length, 1, 'both Azure SDK failures share one issue; the 401 is not filed');
   assert.equal(created[0].path, 'repos/KarishmaGhiya/azure-rest-api-specs/issues');
@@ -307,19 +304,25 @@ test('categorized failures file one issue per fingerprint, reuse existing issues
   assert.match(created[0].body.body, /OpenAI-hosted API \/ baseline SDK 7\.3\.0 \| Passed/);
   assert.deepEqual(Object.values(links), Array(2).fill('https://github.com/KarishmaGhiya/azure-rest-api-specs/issues/7'));
 
+  assert.deepEqual(filed.map(({ number, action, test }) => [number, action, test]), [[7, 'created', 'Count input tokens']]);
+
   calls.length = 0;
-  await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  assert.equal((await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} })).filed[0].action, 'linked');
   assert.equal(calls.filter((call) => call.method !== 'GET').length, 1, 'same evidence: reuse without a comment (only the label probe)');
 
   calls.length = 0;
   report.results[1].error.serviceMessage = 'Token counting is unavailable for this deployment.';
-  await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} });
+  assert.equal((await fileFailureIssues({ report, token: 't', fetchImpl, log: () => {} })).filed[0].action, 'updated');
   const comments = calls.filter((call) => call.path.endsWith('/issues/7/comments') && call.method === 'POST');
   assert.equal(comments.length, 1);
   assert.match(comments[0].body.body, /New evidence[\s\S]*comparison SDK 7\.45\.1/);
   assert.doesNotMatch(comments[0].body.body, /baseline SDK 7\.3\.0/);
 
-  const summary = renderLiveSummary({ ...report, links: { ...report.links, issues: links } });
+  const summary = renderLiveSummary({ ...report, links: { ...report.links, issues: links }, issueSummary: filed });
+  assert.ok(summary.startsWith('### Issues filed or linked\n'), 'issue summary comes first');
+  assert.ok(summary.includes('| [azure-rest-api-specs#7](https://github.com/KarishmaGhiya/azure-rest-api-specs/issues/7) | Azure OpenAI API issue: model not supported for this operation | Count input tokens | New |'));
+  const configured = renderLiveSummary({ ...report, summaryMode: undefined, issueSummary: filed });
+  assert.ok(configured.startsWith('### Issues filed or linked') && configured.includes('## Live API results'));
   assert.match(summary, /🔴 Failed \(HTTP 400\)<hr>\[Azure OpenAI API issue: model not supported for this operation\]\(https:\/\/github\.com\/KarishmaGhiya\/azure-rest-api-specs\/issues\/7\)/);
 });
 

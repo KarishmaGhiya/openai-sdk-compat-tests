@@ -59,7 +59,8 @@ const report = {
 await writeJSON('reports/responses-compatibility.json', report);
 const summary = renderResponsesSummary(report);
 console.log(summary);
-if (process.env.GITHUB_STEP_SUMMARY && process.env.AZURE_COMPAT_MODE !== 'responses-core') {
+// The live workflow's summary job writes these findings after the live results and issue summary.
+if (process.env.GITHUB_STEP_SUMMARY && process.env.COMPAT_SUMMARY_DEFERRED !== 'true' && process.env.AZURE_COMPAT_MODE !== 'responses-core') {
   await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
 }
 if (packages.some((entry) => entry.responses.missingContracts.length || entry.responses.unreviewedSchemas.length || entry.responses.unreviewedRemovals.length ||

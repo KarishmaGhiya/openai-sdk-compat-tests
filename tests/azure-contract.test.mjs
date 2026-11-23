@@ -5,7 +5,7 @@ import * as Current from 'openai-current';
 import { OpenAIClient } from 'azure-openai-legacy';
 import { apiVersion, azureEndpoint, chatResponse, contracts, deployment, fakeKey, legacyTransport, messages, modernTransport } from '../lib/azure-contract.mjs';
 import { readJSON } from '../lib/io.mjs';
-import { toLegacyDataSource } from '../lib/azure-live.mjs';
+import { toLegacyDataSource } from '../lib/azure-contract.mjs';
 
 test('all public legacy Azure client operations have executable migration contracts', async () => {
   const cases = await readJSON('compat/azure-migrations.json');

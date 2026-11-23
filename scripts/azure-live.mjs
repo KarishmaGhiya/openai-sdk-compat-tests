@@ -8,8 +8,11 @@ import { caseLogMarker, renderLiveSummary, renderResponsesCaseLog } from '../lib
 import { CompanionPrerequisiteError, runCompanionLiveMatrix } from '../lib/azure-companion-live.mjs';
 
 export async function writeLiveReport(report, reportFile = 'reports/azure-live.json') {
-  if (process.env.AZURE_COMPAT_MODE === 'responses-core') {
-    report.summaryMode = 'responses-core';
+  const core = process.env.AZURE_COMPAT_MODE === 'responses-core';
+  // A follow-up job writes the summary once this job's log line numbers are final and issues are filed.
+  const deferred = process.env.COMPAT_SUMMARY_DEFERRED === 'true';
+  if (core || deferred) {
+    if (core) report.summaryMode = 'responses-core';
     const repository = process.env.GITHUB_REPOSITORY;
     const sha = process.env.GITHUB_SHA;
     const run = process.env.GITHUB_RUN_ID;
@@ -27,7 +30,7 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
         logs: process.env.RESPONSES_LIVE_LOG_URL || `https://github.com/${repository}/actions/runs/${run}`,
       };
     }
-    for (const row of report.results) {
+    for (const row of report.results.filter((entry) => core || entry.suite === 'responses')) {
       const [title, ...details] = renderResponsesCaseLog(row, report.results).split('\n');
       console.log(`::group::${title}`);
       console.log(`${caseLogMarker(row)}: ${title}`);
@@ -38,8 +41,6 @@ export async function writeLiveReport(report, reportFile = 'reports/azure-live.j
   await writeJSON(reportFile, report);
   const summary = renderLiveSummary(report);
   console.log(summary);
-  // In responses-core mode a follow-up job writes the summary once this job's log line numbers are final.
-  const deferred = report.summaryMode === 'responses-core' && process.env.COMPAT_SUMMARY_DEFERRED === 'true';
   if (process.env.GITHUB_STEP_SUMMARY && !deferred) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
   for (const entry of report.results) console.log(`${entry.status === 'passed' ? 'PASS' : 'FAIL'} ${entry.client ?? entry.provider} ${entry.feature ?? entry.suite} (${entry.status})`);
   if (report.blockedBeforePaidCalls || report.results.some((entry) => entry.status !== 'passed')) process.exitCode = 1;
@@ -65,7 +66,7 @@ export async function main(raw = process.env.AZURE_COMPAT_CONFIG_JSON, { reportF
   }
   const versions = {};
   const { readJSON } = await import('../lib/io.mjs');
-  for (const name of ['openai', 'openai-current', '@azure/openai', 'azure-openai-legacy']) {
+  for (const name of ['openai', 'openai-current', '@azure/openai']) {
     versions[name] = (await readJSON(`node_modules/${name}/package.json`)).version;
   }
   const blocked = responsesPlan?.missing.length > 0;

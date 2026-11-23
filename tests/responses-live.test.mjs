@@ -110,7 +110,7 @@ test('all-nine preset executes 36 actual SDK scenarios and reports 9/9 methods w
     live: true, responses: { mode: result.mode, complete: result.complete }, results: result.results,
   });
   assert.match(summary, /9 of 9 core methods passed/);
-  assert.match(summary, /complete: false means partial coverage, not a failed test/);
+  assert.match(summary, /Selected Responses features only \(partial coverage\)/);
   for (const assertion of ['subsequent retrieve returns HTTP 404', 'cancels the same response ID',
     'requires an encrypted compaction item', 'second input-item page', 'positive integer token count']) {
     assert.ok(summary.includes(assertion), assertion);
@@ -338,7 +338,7 @@ test('top-level live entry point persists a redacted preflight report without ca
     assert.ok(!JSON.stringify(report).includes(value.azureApiKey));
     const summary = await readFile(process.env.GITHUB_STEP_SUMMARY, 'utf8');
     assert.match(summary, /fixture preflight blocked all paid API calls/);
-    assert.match(summary, /No paid API calls: blocked before execution/);
+    assert.match(summary, /No paid API calls were made/);
     assert.ok(!summary.includes(value.azureApiKey));
   } finally {
     globalThis.fetch = before.fetch;
@@ -384,7 +384,7 @@ test('the follow-up summary links each case to its exact outcome line in the fin
   const originalFetch = globalThis.fetch;
   const originalLog = console.log;
   try {
-    await import('node:fs/promises').then((fs) => fs.writeFile(reportFile, JSON.stringify({ live: true, results: rows })));
+    await import('node:fs/promises').then((fs) => fs.writeFile(reportFile, JSON.stringify({ live: true, summaryMode: 'responses-core', results: rows })));
     globalThis.fetch = async (url) => new Response(url.endsWith('/logs') ? log : JSON.stringify({ jobs: [{
       id: 2, name: liveJobName, html_url: job, steps: [{ number: 12, name: liveStepName }],
     }] }));
