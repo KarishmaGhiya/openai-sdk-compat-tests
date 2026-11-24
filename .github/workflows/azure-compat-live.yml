@@ -1,4 +1,5 @@
 name: Azure and OpenAI live compatibility
+run-name: "Live ${{ inputs.mode }}: openai ${{ inputs.baseline_version || 'pinned' }} vs ${{ inputs.current_version || 'pinned' }}"
 
 on:
   workflow_dispatch:
@@ -23,6 +24,14 @@ on:
         default: ''
       companion_chat_deployment:
         description: Companion mode only; optional chat deployment override, without modifying Key Vault
+        type: string
+        default: ''
+      baseline_version:
+        description: Optional published openai version for the baseline SDK (blank uses the pinned 7.3.0)
+        type: string
+        default: ''
+      current_version:
+        description: Optional published openai version for the comparison SDK (blank uses the pinned version)
         type: string
         default: ''
 
@@ -66,6 +75,27 @@ jobs:
           path: reports/responses-compatibility.json
           if-no-files-found: ignore
           retention-days: 7
+      # Offline contracts above run against the pinned SDKs; only the live calls use the selected versions.
+      - name: Install selected SDK versions
+        if: inputs.baseline_version != '' || inputs.current_version != ''
+        env:
+          BASELINE_VERSION: ${{ inputs.baseline_version }}
+          CURRENT_VERSION: ${{ inputs.current_version }}
+        run: |
+          specs=()
+          for pair in "openai:$BASELINE_VERSION" "openai-current:$CURRENT_VERSION"; do
+            name="${pair%%:*}"; version="${pair#*:}"
+            [ -z "$version" ] && continue
+            if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::$name version must be an exact published version like 7.57.0."
+              exit 1
+            fi
+            specs+=("$name@npm:openai@$version")
+          done
+          npm install --no-save --ignore-scripts --no-audit --no-fund "${specs[@]}"
+          for name in openai openai-current; do
+            echo "$name $(node -p "require('./node_modules/$name/package.json').version")"
+          done
       - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}

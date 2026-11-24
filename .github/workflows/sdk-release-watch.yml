@@ -1,0 +1,50 @@
+name: Watch openai npm releases
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openai-release-watch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: vars.RELEASE_WATCH_ENABLED != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - id: release
+        run: node scripts/release-watch.mjs
+        env:
+          NPM_REGISTRY: https://registry.npmjs.org
+      - name: Run live tests for the newest release and its predecessor once
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PREVIOUS: ${{ steps.release.outputs.previous }}
+          LATEST: ${{ steps.release.outputs.latest }}
+        run: |
+          title="openai $PREVIOUS vs $LATEST"
+          seen="$(gh run list --workflow azure-compat-live.yml --limit 200 --json displayTitle \
+            --jq "[.[] | select(.displayTitle | endswith(\"$title\"))] | length")"
+          if [ "$seen" -gt 0 ]; then
+            echo "Live tests already ran or are queued for $title."
+            exit 0
+          fi
+          gh workflow run azure-compat-live.yml --ref main -f confirm_paid_tests=true -f mode=responses-core \
+            -f baseline_version="$PREVIOUS" -f current_version="$LATEST"
+          echo "::notice::Dispatched live tests for $title."

@@ -71,7 +71,8 @@ by regression tests; their presence does not make the entire CI suite fail.
 
 The separate `Azure and OpenAI live compatibility` workflow is manual,
 `main`-only, requires explicit paid-test confirmation, and uses the `openai-live`
-environment. It is not enabled by ordinary PRs, pushes, or scheduled discovery.
+environment. It is not enabled by ordinary PRs, pushes, or scheduled discovery;
+only a manual dispatch or the release watcher below starts it.
 It does not depend on filling the original 281-endpoint catalog.
 
 The default three suites (`chat`, `chat-stream`, `embeddings`) make calls from:
@@ -81,6 +82,19 @@ The default three suites (`chat`, `chat-stream`, `embeddings`) make calls from:
 
 The retired `@azure/openai` v1 `OpenAIClient` is not called live; it is used
 only by the offline migration contracts.
+
+To test other published SDK versions, set `baseline_version` and/or
+`current_version` when dispatching (for example `7.56.0` and `7.57.0`). The live
+job installs them over the pinned `openai`/`openai-current` packages without
+changing the lockfile, after the offline contracts have run against the pinned
+versions. Run names show the pair, such as `Live responses-core: openai 7.56.0
+vs 7.57.0`.
+
+The `Watch openai npm releases` workflow checks npm hourly. When the `latest`
+dist-tag is a stable release that has no live run yet for its pair, it
+dispatches `responses-core` with the previous stable release as baseline and
+the latest as comparison. Set the repository variable `RELEASE_WATCH_ENABLED`
+to `false` to pause it.
 
 That is 12 inference calls by default, with no automatic retries. Text must be
 nonempty; streams must have a finish reason; embeddings must be finite numeric
