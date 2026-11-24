@@ -337,12 +337,14 @@ test('missing companion prerequisites replace stale evidence and block every pai
   delete input.azureCompanion.groundingPrompt;
   const directory = await mkdtemp(join(tmpdir(), 'companion-preflight-'));
   const reportFile = join(directory, 'azure-live.json');
-  const before = { fetch: globalThis.fetch, log: console.log, allow: process.env.ALLOW_LIVE_API, exitCode: process.exitCode };
+  const before = { fetch: globalThis.fetch, log: console.log, allow: process.env.ALLOW_LIVE_API, summary: process.env.GITHUB_STEP_SUMMARY, exitCode: process.exitCode };
   let requests = 0;
   await writeFile(reportFile, JSON.stringify({ live: true, results: [{ status: 'passed' }] }));
   globalThis.fetch = () => { requests++; throw new Error('Must not call any service'); };
   console.log = () => {};
   process.env.ALLOW_LIVE_API = 'true';
+  // Keep this fake preflight table out of the real CI run summary.
+  process.env.GITHUB_STEP_SUMMARY = join(directory, 'summary.md');
   try {
     await assert.rejects(withKeyVaultConfig({
       vaultURL: 'https://fixture.vault.azure.net', secretName: 'config', allowLive: true,
@@ -369,6 +371,7 @@ test('missing companion prerequisites replace stale evidence and block every pai
     console.log = before.log;
     process.exitCode = before.exitCode;
     if (before.allow === undefined) delete process.env.ALLOW_LIVE_API; else process.env.ALLOW_LIVE_API = before.allow;
+    if (before.summary === undefined) delete process.env.GITHUB_STEP_SUMMARY; else process.env.GITHUB_STEP_SUMMARY = before.summary;
     await rm(directory, { recursive: true, force: true });
   }
 });
