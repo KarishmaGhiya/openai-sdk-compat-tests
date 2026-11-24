@@ -352,6 +352,27 @@ test('top-level live entry point persists a redacted preflight report without ca
   }
 });
 
+test('Entra Responses clients request the Cognitive Services scope on both Azure routes', async () => {
+  const scopes = [];
+  const credential = { async getToken(scope) {
+    scopes.push(scope);
+    return { token: 'offline-entra-token', expiresOnTimestamp: Date.now() + 3600_000 };
+  } };
+  const { azureApiKey, ...rest } = config();
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ object: 'list', data: [] }),
+    { headers: { 'content-type': 'application/json' } });
+  try {
+    const targets = await makeResponsesLiveClients({ ...rest, azureAuth: 'entra',
+      responses: { ...rest.responses, azureApiMode: 'both' } }, { credential });
+    for (const target of targets.filter((entry) => entry.provider === 'azure')) await target.client.models.list();
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert.equal(scopes.length, 4);
+  assert.ok(scopes.flat().every((scope) => scope === 'https://cognitiveservices.azure.com/.default'), JSON.stringify(scopes));
+});
+
 test('Responses-only selection does not fall through to legacy audio or pretend legacy parity', async () => {
   validateLiveConfig(config());
   const results = await runLiveMatrix(config(), [{ id: 'legacy', provider: 'azure' }], () => { throw new Error('Must not run'); });
