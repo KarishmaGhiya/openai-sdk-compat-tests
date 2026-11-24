@@ -5,8 +5,9 @@ import { join } from 'node:path';
 import YAML from 'yaml';
 import { root } from '../lib/io.mjs';
 import { liveStepName } from '../scripts/responses-summary.mjs';
+import { releasePair } from '../scripts/release-watch.mjs';
 
-for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml']) {
+for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml', 'sdk-release-watch.yml']) {
   test(`${name} is valid GitHub Actions YAML with resolvable job prerequisites and pinned actions`, async () => {
     const document = YAML.parseDocument(await readFile(join(root, '.github', 'workflows', name), 'utf8'), { uniqueKeys: true });
     assert.deepEqual(document.errors, []);
@@ -79,6 +80,36 @@ test('Azure live workflow is main-only, manual, environment-gated, and authentic
   assert.equal(JSON.stringify(summary).includes('secrets.'), false, 'no GitHub-stored secret is used');
   assert.equal(job.steps.find((step) => step.name === liveStepName)?.run, 'npm run test:azure:keyvault');
   assert.ok(summary.steps.some((step) => step.run?.includes('node scripts/responses-summary.mjs')));
+});
+
+test('live workflow swaps in requested SDK versions only after offline contracts and names the run by version pair', async () => {
+  const workflow = YAML.parse(await readFile(join(root, '.github', 'workflows', 'azure-compat-live.yml'), 'utf8'));
+  assert.match(workflow['run-name'], /openai \$\{\{ inputs\.baseline_version \|\| 'pinned' \}\} vs \$\{\{ inputs\.current_version \|\| 'pinned' \}\}$/);
+  const inputs = workflow.on.workflow_dispatch.inputs;
+  assert.equal(inputs.baseline_version.default, '');
+  assert.equal(inputs.current_version.default, '');
+  const steps = workflow.jobs.live.steps;
+  const install = steps.findIndex((step) => step.name === 'Install selected SDK versions');
+  assert.ok(install > steps.findIndex((step) => step.run === 'npm run responses:report'));
+  assert.ok(install < steps.findIndex((step) => step.run === 'npm run test:azure:keyvault'));
+  assert.equal(steps[install].env.CURRENT_VERSION, '${{ inputs.current_version }}');
+  assert.equal(steps[install].run.includes('${{'), false, 'inputs reach the shell only through env');
+  assert.match(steps[install].run, /--no-save/);
+});
+
+test('release watcher dispatches responses-core once per newest release pair', async () => {
+  const workflow = YAML.parse(await readFile(join(root, '.github', 'workflows', 'sdk-release-watch.yml'), 'utf8'));
+  assert.ok(workflow.on.schedule);
+  const job = workflow.jobs.dispatch;
+  assert.deepEqual(job.permissions, { contents: 'read', actions: 'write' });
+  const run = job.steps.find((step) => step.run?.includes('gh workflow run')).run;
+  assert.match(run, /azure-compat-live\.yml --ref main -f confirm_paid_tests=true -f mode=responses-core/);
+  assert.match(run, /-f baseline_version="\$PREVIOUS" -f current_version="\$LATEST"/);
+  assert.match(run, /endswith\(\\"\$title\\"\)/);
+  assert.deepEqual(releasePair(['7.45.1', '7.57.0', '7.56.0', '7.58.0-beta.1', '7.9.0'], '7.57.0'),
+    { previous: '7.56.0', latest: '7.57.0' });
+  assert.throws(() => releasePair(['7.57.0'], '7.57.0'), /No stable release precedes/);
+  assert.throws(() => releasePair(['7.56.0'], '7.58.0-beta.1'), /not a stable version/);
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {
