@@ -4,7 +4,7 @@ import { responsesIssueFindings } from '../lib/compat-summary.mjs';
 const base64url = (value) => Buffer.from(value).toString('base64url');
 
 // Key Vault values pasted via --value often lose PEM line breaks; rebuild them from the header, body, and footer.
-export function normalizePem(key) {
+function normalizePem(key) {
   const match = /-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/.exec(key ?? '');
   if (!match) return key;
   const body = match[2].replace(/\\n|\s+/g, '');
@@ -16,16 +16,7 @@ export async function appInstallationToken({ clientId, privateKey, repos, fetchI
   const iat = Math.floor(now / 1000) - 60;
   const unsigned = `${base64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))}.${base64url(JSON.stringify({ iat, exp: iat + 540, iss: clientId }))}`;
   const jwt = `${unsigned}.${createSign('RSA-SHA256').update(unsigned).sign(normalizePem(privateKey), 'base64url')}`;
-  const call = async (method, path, body) => {
-    const response = await fetchImpl(`https://api.github.com/${path}`, {
-      method,
-      headers: { authorization: `Bearer ${jwt}`, accept: 'application/vnd.github+json', 'x-github-api-version': '2022-11-28',
-        ...(body ? { 'content-type': 'application/json' } : {}) },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
-    if (!response.ok) throw new Error(`GitHub App ${method} ${path.replace(/\d+/g, '{id}')} failed with HTTP ${response.status}`);
-    return response.json();
-  };
+  const call = client(jwt, fetchImpl, (method, path) => `GitHub App ${method} ${path.replace(/\d+/g, '{id}')}`);
   const targets = [...new Set(Object.values(repos))];
   const owners = new Set(targets.map((repo) => repo.split('/')[0]));
   if (owners.size !== 1) throw new Error('Issue repositories must share one owner and App installation');
@@ -42,14 +33,14 @@ export async function revokeInstallationToken(token, fetchImpl = fetch) {
   }).catch(() => {});
 }
 
-export const issueLabel = 'sdk-compat';
+const issueLabel = 'sdk-compat';
 export const defaultIssueRepos = {
   openapi: 'KarishmaGhiya/openai-openapi',
   sdk: 'KarishmaGhiya/openai-node',
   azure: 'KarishmaGhiya/azure-rest-api-specs',
 };
 
-function client(token, fetchImpl) {
+function client(token, fetchImpl, describe = (method, path) => `GitHub API ${method} ${path.split('?')[0]}`) {
   return async (method, path, body) => {
     const response = await fetchImpl(`https://api.github.com/${path}`, {
       method,
@@ -60,7 +51,7 @@ function client(token, fetchImpl) {
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
     if (!response.ok) {
-      const error = new Error(`GitHub API ${method} ${path.split('?')[0]} failed with HTTP ${response.status}`);
+      const error = new Error(`${describe(method, path)} failed with HTTP ${response.status}`);
       error.status = response.status;
       throw error;
     }

@@ -1,4 +1,5 @@
-import { appendFile, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { appendStepSummary } from '../lib/io.mjs';
 import { pathToFileURL } from 'node:url';
 import { caseLogMarker, renderLiveSummary, renderResponsesSummary } from '../lib/compat-summary.mjs';
 import { appInstallationToken, defaultIssueRepos, fileFailureIssues, revokeInstallationToken } from './failure-issues.mjs';
@@ -38,7 +39,7 @@ export async function main({ reportFile = 'reports/azure-live.json', offlineRepo
   let report;
   try { report = JSON.parse(await readFile(reportFile, 'utf8')); } catch {
     const missing = `| Test | Result |\n| --- | --- |\n| Live run | [No live report was produced; see logs](${runUrl}) |\n`;
-    if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, missing);
+    await appendStepSummary(missing, env);
     console.log(missing);
     return;
   }
@@ -59,11 +60,9 @@ export async function main({ reportFile = 'reports/azure-live.json', offlineRepo
   }
   report.links = { ...report.links, run: runUrl };
   if (env.ISSUES_APP_CLIENT_ID && env.ISSUES_APP_PRIVATE_KEY) {
-    const repos = {
-      openapi: env.OPENAPI_ISSUE_REPO || defaultIssueRepos.openapi,
-      sdk: env.SDK_ISSUE_REPO || defaultIssueRepos.sdk,
-      azure: env.AZURE_ISSUE_REPO || defaultIssueRepos.azure,
-    };
+    // Each kind's repo can be overridden with OPENAPI_ISSUE_REPO, SDK_ISSUE_REPO, or AZURE_ISSUE_REPO.
+    const repos = Object.fromEntries(Object.entries(defaultIssueRepos)
+      .map(([kind, repo]) => [kind, env[`${kind.toUpperCase()}_ISSUE_REPO`] || repo]));
     let token;
     try {
       token = await appInstallationToken({ clientId: env.ISSUES_APP_CLIENT_ID, privateKey: env.ISSUES_APP_PRIVATE_KEY, repos });
@@ -84,7 +83,7 @@ export async function main({ reportFile = 'reports/azure-live.json', offlineRepo
   if (report.summaryMode !== 'responses-core') {
     try { summary += `\n${renderResponsesSummary(JSON.parse(await readFile(offlineReportFile, 'utf8')))}`; } catch {}
   }
-  if (env.GITHUB_STEP_SUMMARY) await appendFile(env.GITHUB_STEP_SUMMARY, summary);
+  await appendStepSummary(summary, env);
   console.log(summary);
 }
 

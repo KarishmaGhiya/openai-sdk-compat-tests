@@ -1,18 +1,12 @@
-import { appendFile } from 'node:fs/promises';
-import { compileAzureProbe, probeAzureTypes } from '../lib/azure-types.mjs';
-import { readJSON, writeJSON } from '../lib/io.mjs';
+import { probeAzureTypes, probeEnhancements } from '../lib/azure-types.mjs';
+import { appendStepSummary, packageVersions, readJSON, writeJSON } from '../lib/io.mjs';
 
-const versions = {};
-for (const name of ['openai', 'openai-current', '@azure/openai', 'azure-openai-legacy']) {
-  versions[name] = (await readJSON(`node_modules/${name}/package.json`)).version;
-}
+const versions = await packageVersions(['openai', 'openai-current', '@azure/openai', 'azure-openai-legacy']);
 const packages = [];
 for (const name of ['openai', 'openai-current']) {
   const fields = await probeAzureTypes(name);
-  const enhancementsProbe = `type Field = import("openai/resources/index").ChatCompletionCreateParamsNonStreaming["enhancements"];`;
   const enhancements = {
-    native: compileAzureProbe(name, enhancementsProbe).length === 0,
-    withAzureTypes: compileAzureProbe(name, enhancementsProbe, true).length === 0,
+    ...probeEnhancements(name),
     runtimePassThrough: true,
     classification: 'legacy-request-type-gap',
     limitation: 'Transport accepts this field; current Azure service support is API-version/model-dependent and not established by this test.',
@@ -41,6 +35,6 @@ const lines = [
 ];
 const summary = `${lines.join('\n')}\n`;
 console.log(summary);
-if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
+await appendStepSummary(summary);
 if (packages.some((entry) => entry.fields.some((field) => !field.withAzureTypes ||
   (!field.callSite.withAzureTypes && !field.callSite.reviewedGap)))) process.exitCode = 1;

@@ -1,5 +1,4 @@
-import { appendFile } from 'node:fs/promises';
-import { compareVersions, exec, npm, readJSON, root, writeJSON } from '../lib/io.mjs';
+import { appendStepSummary, compareVersions, exec, npm, readJSON, root, writeJSON } from '../lib/io.mjs';
 
 const { releases, baseline } = await readJSON('releases.json');
 const published = releases.filter((release) => release.published);
@@ -33,18 +32,17 @@ try {
       });
       if (responsesOnly) {
         summary.push({ version: release.version, status: 'passed', phase });
-        await writeJSON('reports/responses-versions.json', summary);
         console.log(`SDK ${release.version}: Responses contracts passed.`);
-        continue;
+      } else {
+        phase = 'live';
+        const { stdout, stderr } = await exec(process.execPath, ['scripts/live.mjs'], {
+          cwd: root, env: { ...process.env, SDK_VERSION: release.version },
+          maxBuffer: 4 * 1024 * 1024, timeout: 30 * 60_000,
+        });
+        if (stdout) process.stdout.write(stdout);
+        if (stderr) process.stderr.write(stderr);
+        summary.push({ version: release.version, status: 'passed' });
       }
-      phase = 'live';
-      const { stdout, stderr } = await exec(process.execPath, ['scripts/live.mjs'], {
-        cwd: root, env: { ...process.env, SDK_VERSION: release.version },
-        maxBuffer: 4 * 1024 * 1024, timeout: 30 * 60_000,
-      });
-      if (stdout) process.stdout.write(stdout);
-      if (stderr) process.stderr.write(stderr);
-      summary.push({ version: release.version, status: 'passed' });
     } catch (error) {
       // Do not leak raw npm/API error messages or fixture contents to artifacts.
       console.error(`SDK ${release.version} failed during ${phase}; exit code ${error.code ?? 'unknown'}.`);
@@ -61,8 +59,6 @@ try {
   // Restore pinned dependencies after successful runs and handled failures.
   await npm(['ci', '--ignore-scripts', '--no-audit', '--no-fund', ...registryArgs]);
 }
-if (process.env.GITHUB_STEP_SUMMARY) {
-  await appendFile(process.env.GITHUB_STEP_SUMMARY,
-    `## SDK ${responsesOnly ? 'Responses offline' : 'live'} compatibility\n\n| Version | Result | Phase |\n|---|---|---|\n${summary.map((entry) => `| ${entry.version} | ${entry.status} | ${entry.phase ?? 'live'} |`).join('\n')}\n`);
-}
+await appendStepSummary(`## SDK ${responsesOnly ? 'Responses offline' : 'live'} compatibility\n\n| Version | Result | Phase |\n|---|---|---|\n${
+  summary.map((entry) => `| ${entry.version} | ${entry.status} | ${entry.phase ?? 'live'} |`).join('\n')}\n`);
 if (summary.some((entry) => entry.status === 'failed')) process.exitCode = 1;

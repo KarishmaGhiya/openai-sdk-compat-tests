@@ -1,9 +1,9 @@
 import { dirname, resolve } from 'node:path';
 import { livePlan } from '../lib/coverage.mjs';
 import { executeScenario } from '../lib/scenario.mjs';
-import { readJSON, root, writeJSON } from '../lib/io.mjs';
+import { packageVersion, readJSON, root, writeJSON } from '../lib/io.mjs';
 
-const actual = (await readJSON('node_modules/openai/package.json')).version;
+const actual = await packageVersion('openai');
 const version = process.env.SDK_VERSION ?? actual;
 if (version !== actual) throw new Error(`Requested ${version}, but installed SDK is ${actual}.`);
 const { releases } = await readJSON('releases.json');
