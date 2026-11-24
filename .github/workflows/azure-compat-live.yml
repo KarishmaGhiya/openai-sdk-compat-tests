@@ -101,6 +101,7 @@ jobs:
           retention-days: 7
 
   summary:
+    name: Live API results
     needs: live
     if: always() && needs.live.result != 'skipped' && inputs.mode != 'azure-companion'
     runs-on: ubuntu-latest
