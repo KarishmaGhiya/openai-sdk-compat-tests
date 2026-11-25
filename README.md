@@ -183,13 +183,29 @@ contracts, keep `npm test` passing, and open a draft PR. Releases that already
 have such an issue, or list no features, are skipped; at most
 `RELEASE_TESTS_MAX` (default 3) issues are opened per run.
 
-Assigning Copilot requires a user token. Store a fine-grained personal access
-token, limited to this repository with read access to metadata and read/write
-access to actions, contents, issues, and pull requests, in Key Vault as
-`copilot-agent-token` (or the name in `COPILOT_AGENT_TOKEN_SECRET_NAME`). The
-job reads it through the `compat-issues` OIDC identity, which needs the Key
-Vault Secrets User role on that secret. Leave `RELEASE_TESTS_FROM` unset to
-disable the job.
+Assigning Copilot requires a user token, so the job uses a GitHub App
+user-to-server token from the issue-filing App, not a personal access token.
+Read-only calls use the workflow's `GITHUB_TOKEN`. Only when an issue must be
+created does the job refresh the App user token (valid 8 hours), saving the
+rotated refresh token back to Key Vault before using the access token.
+
+One-time setup:
+
+1. In the App settings, grant read/write access to actions, contents, issues,
+   and pull requests; enable device flow and "Expire user authorization
+   tokens"; install the App on this repository; and generate a client secret.
+2. Store the client secret in Key Vault as `compat-issues-app-client-secret`
+   (or the name in `ISSUES_APP_CLIENT_SECRET_NAME`).
+3. Run `az login`, then
+   `AZURE_KEYVAULT_NAME=<vault> ISSUES_APP_CLIENT_ID=<client id> npm run copilot:authorize`
+   and approve the device code. This stores the refresh token as
+   `copilot-agent-refresh-token` (or `COPILOT_REFRESH_TOKEN_SECRET_NAME`)
+   without printing it.
+4. Give the `compat-issues` OIDC identity Key Vault Secrets User on the client
+   secret and Key Vault Secrets Officer on the refresh-token secret.
+
+Refresh tokens expire after 6 months without use; if a refresh fails, re-run
+step 3. Leave `RELEASE_TESTS_FROM` unset to disable the job.
 
 Reports in `reports/` contain per-version coverage and live outcomes, with no
 raw response bodies, fixture values, or API error messages. A failed authentication,

@@ -17,7 +17,8 @@
     "test:azure:live": "node scripts/azure-live.mjs",
     "test:azure:keyvault": "node scripts/azure-keyvault.mjs",
     "test:live": "node scripts/live.mjs",
-    "test:versions": "node scripts/versions.mjs"
+    "test:versions": "node scripts/versions.mjs",
+    "copilot:authorize": "node scripts/authorize-copilot-agent.mjs"
   },
   "devDependencies": {
     "@azure/identity": "4.14.1",

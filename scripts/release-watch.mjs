@@ -12,9 +12,9 @@ export function releasePair(versions, latest) {
   return { previous, latest };
 }
 
-export async function fetchVersions(env = process.env) {
+export async function fetchVersions(env = process.env, fetchImpl = fetch) {
   const registry = (env.NPM_REGISTRY ?? 'https://registry.npmjs.org').replace(/\/$/, '');
-  const response = await fetch(`${registry}/openai`, { headers: { accept: 'application/vnd.npm.install-v1+json' } });
+  const response = await fetchImpl(`${registry}/openai`, { headers: { accept: 'application/vnd.npm.install-v1+json' } });
   if (!response.ok) throw new Error(`npm registry returned HTTP ${response.status}`);
   const packument = await response.json();
   return { versions: Object.keys(packument.versions ?? {}), latest: packument['dist-tags']?.latest };

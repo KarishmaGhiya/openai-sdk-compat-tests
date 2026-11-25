@@ -1,6 +1,9 @@
 import { pathToFileURL } from 'node:url';
+import { SecretClient } from '@azure/keyvault-secrets';
+import { AzureCliCredential } from '@azure/identity';
 import { compareVersions } from '../lib/io.mjs';
 import { changelogFeatures } from '../lib/inventory.mjs';
+import { rotateUserToken } from '../lib/github-user-token.mjs';
 import { fetchVersions, releasePair } from './release-watch.mjs';
 
 export const issueLabel = 'sdk-release-tests';
@@ -38,8 +41,8 @@ ${rows.join('\n')}
   return { title: issueTitle(version), body };
 }
 
-async function github(token, path, { method = 'GET', body, accept = 'application/vnd.github+json' } = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
+async function github(token, path, { method = 'GET', body, accept = 'application/vnd.github+json', fetchImpl = fetch } = {}) {
+  const response = await fetchImpl(`https://api.github.com${path}`, {
     method,
     headers: {
       accept, authorization: `Bearer ${token}`, 'x-github-api-version': '2022-11-28',
@@ -51,37 +54,50 @@ async function github(token, path, { method = 'GET', body, accept = 'application
   return accept.endsWith('raw') ? response.text() : response.json();
 }
 
-export async function main(env = process.env) {
-  const token = env.COPILOT_AGENT_TOKEN;
+export async function main(env = process.env, { fetchImpl = fetch, secrets } = {}) {
   const repo = env.GITHUB_REPOSITORY;
-  if (!token) throw new Error('COPILOT_AGENT_TOKEN is not set');
+  const readToken = env.GITHUB_TOKEN;
+  if (!readToken) throw new Error('GITHUB_TOKEN is not set');
   const max = Number(env.RELEASE_TESTS_MAX ?? 3);
-  const { versions, latest } = await fetchVersions(env);
-  const existing = new Set((await github(token, `/repos/${repo}/issues?labels=${issueLabel}&state=all&per_page=100`))
+  const { versions, latest } = await fetchVersions(env, fetchImpl);
+  const existing = new Set((await github(readToken, `/repos/${repo}/issues?labels=${issueLabel}&state=all&per_page=100`, { fetchImpl }))
     .map((issue) => issue.title));
-  let created = 0;
+  const pending = [];
   for (const version of releasesNeedingTests(versions, latest, env.RELEASE_TESTS_FROM)) {
     if (existing.has(issueTitle(version))) continue;
-    const changelog = await github(token, `/repos/openai/openai-node/contents/CHANGELOG.md?ref=v${version}`,
-      { accept: 'application/vnd.github.raw' });
+    const changelog = await github(readToken, `/repos/openai/openai-node/contents/CHANGELOG.md?ref=v${version}`,
+      { accept: 'application/vnd.github.raw', fetchImpl });
     const features = changelogFeatures(changelog, version);
     if (!features.length) {
       console.log(`openai ${version} lists no features; no test request needed.`);
       continue;
     }
-    if (created >= max) {
+    if (pending.length >= max) {
       console.log(`::warning::Reached RELEASE_TESTS_MAX=${max}; openai ${version} will be requested on the next run.`);
       break;
     }
-    const issue = releaseTestIssue({ version, previous: releasePair(versions, version).previous, features });
-    const result = await github(token, `/repos/${repo}/issues`, { method: 'POST', body: {
+    pending.push(releaseTestIssue({ version, previous: releasePair(versions, version).previous, features }));
+  }
+  if (!pending.length) {
+    console.log('No new releases need test requests.');
+    return;
+  }
+  // Only rotate the user token when an issue is actually created.
+  const userToken = await rotateUserToken({
+    secrets: secrets ?? new SecretClient(`https://${env.AZURE_KEYVAULT_NAME}.vault.azure.net`, new AzureCliCredential()),
+    clientId: env.ISSUES_APP_CLIENT_ID,
+    clientSecretName: env.ISSUES_APP_CLIENT_SECRET_NAME || 'compat-issues-app-client-secret',
+    refreshTokenName: env.COPILOT_REFRESH_TOKEN_SECRET_NAME || 'copilot-agent-refresh-token',
+    mask: (value) => { if (env.GITHUB_ACTIONS === 'true') console.log(`::add-mask::${value}`); },
+    fetchImpl,
+  });
+  for (const issue of pending) {
+    const result = await github(userToken, `/repos/${repo}/issues`, { method: 'POST', fetchImpl, body: {
       ...issue, labels: [issueLabel], assignees: [copilotAssignee],
       agent_assignment: { target_repo: repo, base_branch: 'main' },
     } });
-    created += 1;
-    console.log(`::notice::Asked Copilot to add tests for openai ${version}: ${result.html_url}`);
+    console.log(`::notice::Asked Copilot: ${issue.title}: ${result.html_url}`);
   }
-  if (!created) console.log('No new releases need test requests.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

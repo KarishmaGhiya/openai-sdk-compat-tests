@@ -57,10 +57,12 @@ jobs:
     if: vars.RELEASE_WATCH_ENABLED != 'false' && (inputs.release_tests_from || vars.RELEASE_TESTS_FROM) != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Signs in via OIDC to read the fine-grained user token that can assign issues to the Copilot coding agent.
+    # Signs in via OIDC to Key Vault, which holds the issue-filing App's client secret and a rotating user refresh token.
+    # The Copilot coding agent accepts only user tokens, so a short-lived App user-to-server token creates the issues.
     environment: compat-issues
     permissions:
       contents: read
+      issues: read
       id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -77,14 +79,12 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
       - name: Open a Copilot-assigned issue for each new feature release
+        run: node scripts/request-release-tests.mjs
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           AZURE_KEYVAULT_NAME: ${{ vars.AZURE_KEYVAULT_NAME }}
-          COPILOT_AGENT_TOKEN_SECRET_NAME: ${{ vars.COPILOT_AGENT_TOKEN_SECRET_NAME || 'copilot-agent-token' }}
+          ISSUES_APP_CLIENT_ID: ${{ vars.ISSUES_APP_CLIENT_ID }}
+          ISSUES_APP_CLIENT_SECRET_NAME: ${{ vars.ISSUES_APP_CLIENT_SECRET_NAME }}
+          COPILOT_REFRESH_TOKEN_SECRET_NAME: ${{ vars.COPILOT_REFRESH_TOKEN_SECRET_NAME }}
           RELEASE_TESTS_FROM: ${{ inputs.release_tests_from || vars.RELEASE_TESTS_FROM }}
           NPM_REGISTRY: https://registry.npmjs.org
-        # The token stays in this shell's memory and is passed only to the node process.
-        run: |
-          COPILOT_AGENT_TOKEN="$(az keyvault secret show --vault-name "$AZURE_KEYVAULT_NAME" --name "$COPILOT_AGENT_TOKEN_SECRET_NAME" --query value -o tsv 2>/dev/null)" ||
-            { echo "::error::Could not read $COPILOT_AGENT_TOKEN_SECRET_NAME from Key Vault."; exit 1; }
-          echo "::add-mask::$COPILOT_AGENT_TOKEN"
-          COPILOT_AGENT_TOKEN="$COPILOT_AGENT_TOKEN" node scripts/request-release-tests.mjs
