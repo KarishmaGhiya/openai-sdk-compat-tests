@@ -6,8 +6,9 @@ import YAML from 'yaml';
 import { root } from '../lib/io.mjs';
 import { liveStepName } from '../scripts/responses-summary.mjs';
 import { releasePair } from '../scripts/release-watch.mjs';
+import { releasesNeedingTests, releaseTestIssue, main as requestReleaseTests } from '../scripts/request-release-tests.mjs';
 
-for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml', 'sdk-release-watch.yml']) {
+for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml', 'sdk-release-watch.yml', 'copilot-setup-steps.yml']) {
   test(`${name} is valid GitHub Actions YAML with resolvable job prerequisites and pinned actions`, async () => {
     const document = YAML.parseDocument(await readFile(join(root, '.github', 'workflows', name), 'utf8'), { uniqueKeys: true });
     assert.deepEqual(document.errors, []);
@@ -110,6 +111,64 @@ test('release watcher dispatches responses-core once per newest release pair', a
     { previous: '7.56.0', latest: '7.57.0' });
   assert.throws(() => releasePair(['7.57.0'], '7.57.0'), /No stable release precedes/);
   assert.throws(() => releasePair(['7.56.0'], '7.58.0-beta.1'), /not a stable version/);
+});
+
+test('release watcher asks the Copilot coding agent for tests with an App user token from Key Vault, never a stored secret', async () => {
+  const workflow = YAML.parse(await readFile(join(root, '.github', 'workflows', 'sdk-release-watch.yml'), 'utf8'));
+  const job = workflow.jobs['request-tests'];
+  assert.equal(job.environment, 'compat-issues');
+  assert.deepEqual(job.permissions, { contents: 'read', issues: 'read', 'id-token': 'write' });
+  assert.match(job.if, /RELEASE_TESTS_FROM/);
+  assert.equal(JSON.stringify(job).includes('secrets.'), false);
+  const step = job.steps.find((entry) => entry.run?.includes('request-release-tests.mjs'));
+  assert.equal(step.env.GITHUB_TOKEN, '${{ github.token }}');
+  assert.equal(step.env.AZURE_KEYVAULT_NAME, '${{ vars.AZURE_KEYVAULT_NAME }}');
+  assert.deepEqual(releasesNeedingTests(['7.62.0', '7.64.0', '7.63.0', '7.65.0-beta.1', '7.65.0'], '7.64.0', '7.63.0'),
+    ['7.63.0', '7.64.0']);
+  assert.throws(() => releasesNeedingTests(['7.64.0'], '7.64.0', ''), /RELEASE_TESTS_FROM/);
+  const issue = releaseTestIssue({ version: '7.64.0', previous: '7.63.0',
+    features: [{ id: 'changelog:7.64.0:abc', description: '**api:** add a | b' }] });
+  assert.equal(issue.title, 'Add tests for openai 7.64.0');
+  assert.ok(issue.body.includes('| `changelog:7.64.0:abc` | **api:** add a \\| b |'));
+  assert.ok(issue.body.includes('compare/v7.63.0...v7.64.0'));
+  assert.match(issue.body, /Do not set `ALLOW_LIVE_API`/);
+});
+
+test('release test requests rotate the App user token only when an issue is created, saving it before use', async () => {
+  const events = [];
+  const changelog = '## [7.64.0](https://x) (2026-08-03)\n\n### Features\n\n* **api:** add healthcare model IDs\n';
+  const fetchImpl = async (url, init = {}) => {
+    const auth = init.headers?.authorization ?? init.headers?.Authorization;
+    events.push(`${init.method ?? 'GET'} ${url.replace(/\?.*/, '')} ${auth ?? ''}`.trim());
+    const json = (body) => ({ ok: true, status: 200, json: async () => body, text: async () => JSON.stringify(body) });
+    if (url.startsWith('https://npm.test/')) return json({ 'dist-tags': { latest: '7.64.0' }, versions: { '7.63.0': {}, '7.64.0': {} } });
+    if (url.includes('/repos/o/r/issues') && init.method === 'GET') return json(issuesSeen);
+    if (url.includes('CHANGELOG.md')) return { ok: true, status: 200, text: async () => changelog, json: async () => changelog };
+    if (url.includes('/oauth/access_token')) return json({ access_token: 'user-access', refresh_token: 'refresh-2' });
+    return json({ html_url: 'https://github.com/o/r/issues/9' });
+  };
+  const secrets = {
+    getSecret: async (name) => ({ value: `${name}-value` }),
+    setSecret: async (name, value) => { events.push(`SAVE ${name}=${value}`); },
+  };
+  const env = { GITHUB_REPOSITORY: 'o/r', GITHUB_TOKEN: 'read-token', ISSUES_APP_CLIENT_ID: 'Iv1', RELEASE_TESTS_FROM: '7.64.0', NPM_REGISTRY: 'https://npm.test', GITHUB_STEP_SUMMARY: '' };
+  const log = console.log;
+  console.log = () => {};
+  let issuesSeen = [{ title: 'Add tests for openai 7.64.0' }];
+  try {
+    await requestReleaseTests(env, { fetchImpl, secrets });
+    assert.equal(events.some((event) => event.includes('oauth') || event.startsWith('SAVE')), false);
+    events.length = 0;
+    issuesSeen = [];
+    await requestReleaseTests(env, { fetchImpl, secrets });
+  } finally {
+    console.log = log;
+  }
+  const save = events.indexOf('SAVE copilot-agent-refresh-token=refresh-2');
+  const create = events.findIndex((event) => event.startsWith('POST https://api.github.com/repos/o/r/issues'));
+  assert.ok(save > -1 && create > save, events.join('\n'));
+  assert.match(events[create], /user-access/);
+  assert.ok(events.filter((event) => event.includes('api.github.com') && !event.startsWith('POST')).every((event) => event.includes('read-token')));
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

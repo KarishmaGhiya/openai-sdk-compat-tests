@@ -4,7 +4,11 @@ on:
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
-
+    inputs:
+      release_tests_from:
+        description: Ask Copilot for tests for every feature release from this version (blank uses the RELEASE_TESTS_FROM variable)
+        type: string
+        default: ''
 permissions:
   contents: read
 
@@ -48,3 +52,39 @@ jobs:
           gh workflow run azure-compat-live.yml --ref main -f confirm_paid_tests=true -f mode=responses-core \
             -f baseline_version="$PREVIOUS" -f current_version="$LATEST"
           echo "::notice::Dispatched live tests for $title."
+
+  request-tests:
+    if: vars.RELEASE_WATCH_ENABLED != 'false' && (inputs.release_tests_from || vars.RELEASE_TESTS_FROM) != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Signs in via OIDC to Key Vault, which holds the issue-filing App's client secret and a rotating user refresh token.
+    # The Copilot coding agent accepts only user tokens, so a short-lived App user-to-server token creates the issues.
+    environment: compat-issues
+    permissions:
+      contents: read
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: azure/login@935127ca5bb3c4b02c9c2c10060028383878f33f # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+      - name: Open a Copilot-assigned issue for each new feature release
+        run: node scripts/request-release-tests.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AZURE_KEYVAULT_NAME: ${{ vars.AZURE_KEYVAULT_NAME }}
+          ISSUES_APP_CLIENT_ID: ${{ vars.ISSUES_APP_CLIENT_ID }}
+          ISSUES_APP_CLIENT_SECRET_NAME: ${{ vars.ISSUES_APP_CLIENT_SECRET_NAME }}
+          COPILOT_REFRESH_TOKEN_SECRET_NAME: ${{ vars.COPILOT_REFRESH_TOKEN_SECRET_NAME }}
+          RELEASE_TESTS_FROM: ${{ inputs.release_tests_from || vars.RELEASE_TESTS_FROM }}
+          NPM_REGISTRY: https://registry.npmjs.org
