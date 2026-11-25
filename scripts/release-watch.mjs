@@ -12,12 +12,17 @@ export function releasePair(versions, latest) {
   return { previous, latest };
 }
 
-export async function main(env = process.env) {
+export async function fetchVersions(env = process.env) {
   const registry = (env.NPM_REGISTRY ?? 'https://registry.npmjs.org').replace(/\/$/, '');
   const response = await fetch(`${registry}/openai`, { headers: { accept: 'application/vnd.npm.install-v1+json' } });
   if (!response.ok) throw new Error(`npm registry returned HTTP ${response.status}`);
   const packument = await response.json();
-  const pair = releasePair(Object.keys(packument.versions ?? {}), packument['dist-tags']?.latest);
+  return { versions: Object.keys(packument.versions ?? {}), latest: packument['dist-tags']?.latest };
+}
+
+export async function main(env = process.env) {
+  const { versions, latest } = await fetchVersions(env);
+  const pair = releasePair(versions, latest);
   console.log(`Latest openai release ${pair.latest}; previous ${pair.previous}.`);
   if (env.GITHUB_OUTPUT) await appendFile(env.GITHUB_OUTPUT, `latest=${pair.latest}\nprevious=${pair.previous}\n`);
   return pair;

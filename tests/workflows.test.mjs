@@ -6,8 +6,9 @@ import YAML from 'yaml';
 import { root } from '../lib/io.mjs';
 import { liveStepName } from '../scripts/responses-summary.mjs';
 import { releasePair } from '../scripts/release-watch.mjs';
+import { releasesNeedingTests, releaseTestIssue } from '../scripts/request-release-tests.mjs';
 
-for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml', 'sdk-release-watch.yml']) {
+for (const name of ['ci.yml', 'releases.yml', 'azure-compat-live.yml', 'sdk-release-watch.yml', 'copilot-setup-steps.yml']) {
   test(`${name} is valid GitHub Actions YAML with resolvable job prerequisites and pinned actions`, async () => {
     const document = YAML.parseDocument(await readFile(join(root, '.github', 'workflows', name), 'utf8'), { uniqueKeys: true });
     assert.deepEqual(document.errors, []);
@@ -110,6 +111,27 @@ test('release watcher dispatches responses-core once per newest release pair', a
     { previous: '7.56.0', latest: '7.57.0' });
   assert.throws(() => releasePair(['7.57.0'], '7.57.0'), /No stable release precedes/);
   assert.throws(() => releasePair(['7.56.0'], '7.58.0-beta.1'), /not a stable version/);
+});
+
+test('release watcher asks the Copilot coding agent for tests with a Key Vault user token, never a stored secret', async () => {
+  const workflow = YAML.parse(await readFile(join(root, '.github', 'workflows', 'sdk-release-watch.yml'), 'utf8'));
+  const job = workflow.jobs['request-tests'];
+  assert.equal(job.environment, 'compat-issues');
+  assert.deepEqual(job.permissions, { contents: 'read', 'id-token': 'write' });
+  assert.match(job.if, /RELEASE_TESTS_FROM/);
+  assert.equal(JSON.stringify(job).includes('secrets.'), false);
+  const step = job.steps.find((entry) => entry.run?.includes('request-release-tests.mjs'));
+  assert.match(step.run, /az keyvault secret show/);
+  assert.match(step.run, /::add-mask::/);
+  assert.deepEqual(releasesNeedingTests(['7.62.0', '7.64.0', '7.63.0', '7.65.0-beta.1', '7.65.0'], '7.64.0', '7.63.0'),
+    ['7.63.0', '7.64.0']);
+  assert.throws(() => releasesNeedingTests(['7.64.0'], '7.64.0', ''), /RELEASE_TESTS_FROM/);
+  const issue = releaseTestIssue({ version: '7.64.0', previous: '7.63.0',
+    features: [{ id: 'changelog:7.64.0:abc', description: '**api:** add a | b' }] });
+  assert.equal(issue.title, 'Add tests for openai 7.64.0');
+  assert.ok(issue.body.includes('| `changelog:7.64.0:abc` | **api:** add a \\| b |'));
+  assert.ok(issue.body.includes('compare/v7.63.0...v7.64.0'));
+  assert.match(issue.body, /Do not set `ALLOW_LIVE_API`/);
 });
 
 test('release discovery checks Responses offline before drafting updates and fails on unreviewed regressions', async () => {

@@ -171,6 +171,26 @@ start after detecting a new published release, and after relevant changes merge
 to `main`; manual dispatch defaults to the complete range. All versions in that
 range run in release order, not a parallel matrix, to avoid shared-fixture races.
 
+### Copilot-drafted tests for new releases
+
+The `request-tests` job in `sdk-release-watch.yml` runs hourly with the release
+watcher. For each stable release from `RELEASE_TESTS_FROM` (repository
+variable, or the `release_tests_from` dispatch input) whose changelog lists
+features, it opens an issue labeled `sdk-release-tests` and assigns it to the
+Copilot coding agent. The issue lists every changelog obligation ID and asks
+Copilot to run discovery, complete the release-feature cases and any offline
+contracts, keep `npm test` passing, and open a draft PR. Releases that already
+have such an issue, or list no features, are skipped; at most
+`RELEASE_TESTS_MAX` (default 3) issues are opened per run.
+
+Assigning Copilot requires a user token. Store a fine-grained personal access
+token, limited to this repository with read access to metadata and read/write
+access to actions, contents, issues, and pull requests, in Key Vault as
+`copilot-agent-token` (or the name in `COPILOT_AGENT_TOKEN_SECRET_NAME`). The
+job reads it through the `compat-issues` OIDC identity, which needs the Key
+Vault Secrets User role on that secret. Leave `RELEASE_TESTS_FROM` unset to
+disable the job.
+
 Reports in `reports/` contain per-version coverage and live outcomes, with no
 raw response bodies, fixture values, or API error messages. A failed authentication,
 missing fixture, assertion failure, cleanup failure, or coverage gap remains
