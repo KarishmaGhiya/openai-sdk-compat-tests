@@ -13,7 +13,7 @@ import { main as liveMain, writeLiveReport } from '../scripts/azure-live.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { caseLogMarker, renderLiveSummary } from '../lib/compat-summary.mjs';
+import { caseLogMarker, renderLiveSummary, responsesFailureCategory } from '../lib/compat-summary.mjs';
 import { sanitizeServiceMessage } from '../lib/service-diagnostics.mjs';
 import { caseLineLinks, liveJobName, liveStepName, main as summaryMain } from '../scripts/responses-summary.mjs';
 
@@ -136,7 +136,8 @@ for (const [name, SDK] of [['baseline', Baseline], ['current', Current]]) {
     for (const id of ['method:retrieve', 'method:delete', 'method:cancel', 'method:compact', 'method:inputItems.list', 'method:inputTokens.count']) {
       await t.test(id, async () => {
         const { client, requests } = liveTransport(SDK, 'azure-v1', { badMethod: id });
-        await assert.rejects(runResponsesBuiltin({ client, SDK, provider: 'azure' }, id, config()), { name: 'AssertionError' });
+        await assert.rejects(runResponsesBuiltin({ client, SDK, provider: 'azure' }, id, config(), {},
+          { readAfterWriteWindowMs: 5, readAfterWriteDelayMs: 1 }), { name: 'AssertionError' });
         if (['method:retrieve', 'method:cancel', 'method:inputItems.list'].includes(id)) {
           assert.equal(requests.at(-1).method, 'DELETE');
         }
@@ -259,10 +260,39 @@ test('a stored response that becomes listable after 404s passes with a read-afte
   assert.ok(linked.includes(`<hr>[Azure OpenAI API issue: read-after-write delay](${issue})`));
 });
 
+test('a deleted response that stays retrievable briefly passes with a warning; persistently, it is an Azure issue, not an SDK one', async () => {
+  const deleteTransport = (staleReads) => {
+    let reads = 0;
+    let deleted = false;
+    return responsesTransport(Current, 'azure-v1', (request) => {
+      if (request.method === 'DELETE') { deleted = true; return { status: 204 }; }
+      if (request.method === 'POST') return { body: responseFixture({ id: 'resp_SECRET1' }) };
+      return deleted && ++reads > staleReads ? { status: 404, body: { error: { message: 'not found' } } } : { body: responseFixture({ id: 'resp_SECRET1' }) };
+    }).client;
+  };
+  const value = { ...config(), responses: { mode: 'selected', azureApiMode: 'v1', features: ['method:delete'] } };
+  const target = (client, id) => [{ client, SDK: Current, id, provider: 'azure', version: '7.45.1', supported: new Set(['method:delete']) }];
+  const options = { readAfterWriteWindowMs: 200, readAfterWriteDelayMs: 1 };
+  const delayed = (await runResponsesLiveMatrix(value, target(deleteTransport(2), 'current-azure-v1'), undefined, options)).results[0];
+  assert.equal(delayed.status, 'passed');
+  assert.deepEqual([delayed.warning.kind, delayed.warning.operation, delayed.warning.retries],
+    ['delete-propagation-delay', 'responses.delete.verify', 2]);
+  const passed = renderLiveSummary({ live: true, summaryMode: 'responses-core', results: [{ ...delayed, suite: 'responses' }] });
+  assert.match(passed, /\u{1f7e1} Passed with warning<hr>Azure OpenAI API issue: delete propagation delay/u);
+
+  const stuck = (await runResponsesLiveMatrix(value, target(deleteTransport(Infinity), 'baseline-azure-v1'), undefined, options)).results[0];
+  assert.equal(stuck.status, 'failed');
+  assert.equal(stuck.error.knownCause, 'deleted-response-still-retrievable');
+  assert.ok(Number.isInteger(stuck.error.retriedForMs) && stuck.error.retries > 0);
+  const rows = [{ ...stuck, suite: 'responses' }, { ...delayed, suite: 'responses' }];
+  assert.equal(responsesFailureCategory(rows[0], rows), 'Azure OpenAI API issue: deleted response still retrievable after retries');
+  assert.doesNotMatch(JSON.stringify([delayed, stuck]), /SECRET/);
+});
+
 test('persistent stored-response 404s and unsupported-model 400s report exact redacted service causes', async () => {
   const { client } = itemsTransport(Infinity);
   const missing = (await runResponsesLiveMatrix(itemsConfig(), itemsTarget(client), undefined,
-    { readAfterWriteWindowMs: 5, readAfterWriteDelayMs: 1 })).results[0];
+    { readAfterWriteWindowMs: 200, readAfterWriteDelayMs: 1 })).results[0];
   assert.equal(missing.status, 'failed');
   assert.equal(missing.error.knownCause, 'stored-response-not-found-after-retry');
   assert.equal(missing.error.serviceType, 'invalid_request_error');

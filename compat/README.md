@@ -285,6 +285,11 @@ supported for this operation**. Listing input items retries a stored-response 40
 for up to 30 seconds. If the items then appear, the case is a yellow **Passed with
 warning** with **Azure OpenAI API issue: read-after-write delay** below it, with the delay. If they never appear, it
 fails as **Azure OpenAI API issue: stored response not found after retries**.
+Likewise, verifying a delete retries the retrieve for up to 30 seconds until it
+returns 404: a short delay is a **Passed with warning** with **Azure OpenAI API
+issue: delete propagation delay**, and a persistent one fails as **Azure OpenAI
+API issue: deleted response still retrievable after retries**, never as an SDK
+issue.
 
 The live workflow uploads `sdk-compatibility-details` for the offline JSON and
 `azure-live-results` for live case outcomes. No extra inference calls are needed
